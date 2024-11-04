@@ -45,6 +45,7 @@ public class PlayerInputHandler : MonoBehaviour
         moveAction.performed += context => MoveInput = context.ReadValue<Vector2>();
         moveAction.canceled += context => MoveInput = Vector2.zero;
 
+        //lookAction.performed += context => LookInput = Camera.main.ScreenToWorldPoint(context.ReadValue<Vector2>());
         lookAction.performed += context => LookInput = context.ReadValue<Vector2>();
         lookAction.canceled += context => LookInput = Vector2.zero;
     }
