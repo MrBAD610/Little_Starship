@@ -7,6 +7,10 @@ public class PlayerController : MonoBehaviour
     [Header("Movement Settings")]
     [SerializeField] private float moveSpeed = 5f;
 
+    [Header("Position Settings")]
+    [SerializeField] private float yPosition = 0f;
+    //[SerializeField] private float yCorrectionSpeed = 1f;
+
     [Header("Camera Settings")]
     [SerializeField] private float cameraOffset = 5.0f;
 
@@ -34,6 +38,7 @@ public class PlayerController : MonoBehaviour
     {
         HandleMovement();
         HandleRotation();
+        HandleYPosition();
     }
 
     void HandleMovement()
@@ -60,5 +65,19 @@ public class PlayerController : MonoBehaviour
         //float angRad = Mathf.Atan2(mousePos.y - transform.position.y, mousePos.x - transform.position.x);
         //float angDeg = (180 / Mathf.PI) * angRad; // Offset by 90 Degrees
         //rb.MoveRotation(Quaternion.Euler(0f, angDeg, 0f));
+    }
+
+    void HandleYPosition()
+    {
+        //Vector3 desiredPosition = new Vector3(rb.position.x, yPosition, rb.position.z);
+        Vector3 desiredPosition = new Vector3(transform.position.x, yPosition, transform.position.z);
+
+        if ((desiredPosition - transform.position) != Vector3.zero)
+        {
+            transform.position = desiredPosition;
+        }
+
+        //rb.velocity = desiredPosition - rb.position;
+        //rb.AddForce((desiredPosition - rb.position) * yCorrectionSpeed, ForceMode.Force);
     }
 }

@@ -17,11 +17,6 @@ public class PlayerInventory : MonoBehaviour
     {
         for (int i = 0; i < colonistSlots.Length; i++)
         {
-            if (colonistNum > slotNum)
-            {
-                colonistNum = slotNum;
-            }
-
             if (i < colonistNum)
             {
                 colonistSlots[i].sprite = fullSlot;
@@ -46,5 +41,29 @@ public class PlayerInventory : MonoBehaviour
     {
         //NumberOfCollonists++;
         colonistNum++;
+    }
+
+    private void OnCollisionEnter(Collision other)
+    {
+        if (other.gameObject.tag == "Colonist")
+        {
+            Debug.Log("A collider has made contact with the Colonist Collider");
+
+            if (colonistNum < slotNum)
+            {
+                ColonistCollected();
+                other.gameObject.SetActive(false);
+                Debug.Log("Colonist Collected");
+            }
+            else
+            {
+                Debug.Log("No room for Colonist");
+            }
+
+        }
+        else
+        {
+            Debug.Log("Collision Detected");
+        }
     }
 }
