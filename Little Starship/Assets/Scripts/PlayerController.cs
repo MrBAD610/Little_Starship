@@ -21,17 +21,28 @@ public class PlayerController : MonoBehaviour
     private Camera mainCamera;
 
     private Transform playerTransform;
+    private Transform beamTransform;
 
     private float horizontalInput;
     private float verticalInput;
-    private float mouseXPosition;
-    private float mouseYPosition;
+
+    private bool grabInput;
+
+    private Vector3 curScreenPos;
+    private Vector3 MousePos
+    {
+        get
+        {
+            float z = mainCamera.WorldToScreenPoint(playerTransform.position).z;
+            return mainCamera.ScreenToWorldPoint(new Vector3(curScreenPos.x, curScreenPos.y, z));
+        }
+    }
 
     private void Awake()
     {
         rb = GetComponent<Rigidbody>();
-        mainCamera = Camera.main;
         inputHandler = PlayerInputHandler.Instance;
+        mainCamera = inputHandler.Camera;
         playerTransform = transform;
     }
 
@@ -40,8 +51,8 @@ public class PlayerController : MonoBehaviour
     {
         horizontalInput = inputHandler.MoveInput.x;
         verticalInput = inputHandler.MoveInput.y;
-        mouseXPosition = inputHandler.LookInput.x;
-        mouseYPosition = inputHandler.LookInput.y;
+        curScreenPos = inputHandler.LookInput;
+        grabInput = inputHandler.GrabInput;
     }
 
     private void FixedUpdate()
@@ -49,26 +60,29 @@ public class PlayerController : MonoBehaviour
         HandleMovement();
         HandleRotation();
         HandleYPosition();
+
+        if (grabInput)
+        {
+            StartCoroutine(Drag());
+        }
     }
 
     void HandleMovement()
     {
         float speed = moveSpeed;
-        Vector3 offset = new Vector3(0f, cameraOffset, 0f);
+        Vector3 camOffset = new Vector3(0f, cameraOffset, 0f);
         //rb.velocity = new Vector3(horizontalInput * speed, 0f, verticalInput * speed);
         rb.AddForce(new Vector3(horizontalInput * speed, 0f, verticalInput * speed));
-        mainCamera.transform.localPosition = playerTransform.position + offset;
+        mainCamera.transform.localPosition = playerTransform.position + camOffset;
     }
 
     void HandleRotation()
     {
-        Vector3 mousePos = (Vector3)mainCamera.ScreenToWorldPoint(new Vector3(mouseXPosition, mouseYPosition, cameraOffset));
-
-        Vector3 directionToFace = mousePos - rb.position;
+        Vector3 directionToFace = MousePos - playerTransform.position;
         float angle = (180 / Mathf.PI) * Mathf.Atan2(directionToFace.z, directionToFace.x) - 90;
         rb.MoveRotation(Quaternion.Euler(0f, -angle, 0f));
 
-        Debug.DrawLine(playerTransform.position, mousePos, Color.green, Time.deltaTime);        
+        Debug.DrawLine(playerTransform.position, MousePos, Color.green, Time.deltaTime);        
     }
 
     void HandleYPosition()
@@ -82,5 +96,28 @@ public class PlayerController : MonoBehaviour
 
         //rb.velocity = desiredPosition - rb.position;
         //rb.AddForce((desiredPosition - rb.position) * yCorrectionSpeed, ForceMode.Force);
+    }
+
+    private IEnumerator Drag()
+    {
+        Ray ray = mainCamera.ScreenPointToRay(curScreenPos);
+        //GameObject beamable;
+        //Transform beamTransform;
+
+        if (Physics.Raycast(ray, out RaycastHit hit))
+        {
+            //beamable = hit.transform.gameObject;
+            beamTransform = hit.transform;
+        }
+
+        while (grabInput)
+        {
+            // dragging game object
+            //transform.position = MousePos;
+
+            beamTransform.position = MousePos;
+            yield return null;
+            Debug.Log("Has grabbed");
+        }
     }
 }

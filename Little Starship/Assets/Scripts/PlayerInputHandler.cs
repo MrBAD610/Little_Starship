@@ -20,37 +20,38 @@ public class PlayerInputHandler : MonoBehaviour
     private InputAction lookAction;
     private InputAction grabAction;
 
-    private Vector3 curScreenPos;
+    //private Vector3 curScreenPos;
 
-    Camera cam;
+    //Camera cam;
+    public Camera Camera { get; private set; }
+    public GameObject ObjectUnderPoint { get; private set; }
 
     public Vector2 MoveInput { get; private set; }
     public Vector2 LookInput { get; private set; }
-    //public ButtonControl GrabInput { get; private set; }
+    public bool GrabInput { get; private set; }
 
-    private bool isDraging;
-    private Vector3 worldPos
+    //private bool isDraging;
+    //private Vector3 WorldPos
+    //{
+    //    get
+    //    {
+    //        float z = cam.WorldToScreenPoint(transform.position).z;
+    //        return cam.ScreenToWorldPoint(curScreenPos + new Vector3(0, 0, z));
+    //    }
+    //}
+
+    private bool CanGrab
     {
         get
         {
-            float z = cam.WorldToScreenPoint(transform.position).z;
-            return cam.ScreenToWorldPoint(curScreenPos + new Vector3(0, 0, z));
-        }
-    }
-    private bool canGrab
-    {
-        get
-        {
-            Ray ray = cam.ScreenPointToRay(curScreenPos);
-            RaycastHit hit;
-            if(Physics.Raycast(ray, out hit))
+            Ray ray = Camera.ScreenPointToRay(LookInput);
+            if (Physics.Raycast(ray, out RaycastHit hit))
             {
                 return hit.transform.gameObject.layer == LayerMask.NameToLayer("Grabbable");
             }
             return false;
         }
     }
-    
 
     public static PlayerInputHandler Instance { get; private set; }
 
@@ -66,7 +67,8 @@ public class PlayerInputHandler : MonoBehaviour
             Destroy(gameObject);
         }
 
-        cam = Camera.main;
+        //cam = Camera.main;
+        Camera = Camera.main;
 
         moveAction = playerControls.FindActionMap(actionMapName).FindAction(move);
         lookAction = playerControls.FindActionMap(actionMapName).FindAction(look);
@@ -82,31 +84,37 @@ public class PlayerInputHandler : MonoBehaviour
         lookAction.performed += context => LookInput = context.ReadValue<Vector2>();
         lookAction.canceled += context => LookInput = Vector2.zero;
 
-        grabAction.performed += _ => { if (canGrab) StartCoroutine(Drag()); };
-        grabAction.canceled += _ => { isDraging = false; };
+        grabAction.performed += context => GrabInput = CanGrab;
+        grabAction.canceled += context => GrabInput = false;
+        //grabAction.performed += _ => { if (canGrab) StartCoroutine(Drag()); };
+        //grabAction.canceled += _ => { isDraging = false; };
     }
 
     private void OnEnable()
     {
         moveAction.Enable();
         lookAction.Enable();
+        grabAction.Enable();
     }
 
     private void OnDisable()
     {
         moveAction.Disable();
         lookAction.Disable();
+        grabAction.Disable();
     }
 
-    private IEnumerator Drag()
-    {
-        isDraging = true;
-        // grabing game object
-        while(isDraging)
-        {
-            // dragging game object
-            yield return null;
-            Debug.Log("Has grabbed");
-        }
-    }
+    //private IEnumerator Drag()
+    //{
+    //    isDraging = true;
+    //    Vector3 offset = transform.position - WorldPos;
+    //    // grabing game object
+    //    while(isDraging)
+    //    {
+    //        // dragging game object
+    //        transform.position = WorldPos + offset;
+    //        yield return null;
+    //        Debug.Log("Has grabbed");
+    //    }
+    //}
 }
