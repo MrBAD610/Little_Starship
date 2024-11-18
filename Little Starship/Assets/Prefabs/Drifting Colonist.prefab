@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 2872232325880087628}
   - component: {fileID: 7889645404220277586}
   - component: {fileID: 7785978961496734516}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Colonist Mesh Stand in
   m_TagString: Untagged
   m_Icon: {fileID: 0}
@@ -94,7 +94,7 @@ GameObject:
   - component: {fileID: 5380580570352742200}
   - component: {fileID: 6856870962496636382}
   - component: {fileID: 3548263745365219747}
-  m_Layer: 0
+  m_Layer: 7
   m_Name: Drifting Colonist
   m_TagString: Colonist
   m_Icon: {fileID: 0}
@@ -148,7 +148,7 @@ Rigidbody:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 5309587183570560409}
   serializedVersion: 4
-  m_Mass: 0.5
+  m_Mass: 0.1
   m_Drag: 0
   m_AngularDrag: 0.05
   m_CenterOfMass: {x: 0, y: 0, z: 0}
