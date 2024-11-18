@@ -11,25 +11,41 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float yPosition = 0f;
     //[SerializeField] private float yCorrectionSpeed = 1f;
 
+    [Header("Tractor Beam Settings")]
+    [SerializeField] private float attractSpeed = 1.0f;
+
     [Header("Camera Settings")]
     [SerializeField] private float cameraOffset = 5.0f;
 
-    private Rigidbody rb;
+    private Rigidbody playerRb;
 
     private PlayerInputHandler inputHandler;
 
     private Camera mainCamera;
 
     private Transform playerTransform;
-    private Transform beamTransform;
+    //private Transform beamTransform;
 
     private float horizontalInput;
     private float verticalInput;
+    public bool grabInput;
+    //public bool canGrab;
 
-    private bool grabInput;
+    public bool CanGrab
+    {
+        get
+        {
+            Ray ray = mainCamera.ScreenPointToRay(curScreenPos);
+            if (Physics.Raycast(ray, out RaycastHit hit) && hit.transform.gameObject.TryGetComponent<Rigidbody>(out Rigidbody hitRb))
+            {
+                return hit.transform.gameObject.layer == LayerMask.NameToLayer("Grabbable");
+            }
+            return false;
+        }
+    }
 
-    private Vector3 curScreenPos;
-    private Vector3 MousePos
+    public Vector3 curScreenPos;
+    public Vector3 MousePos
     {
         get
         {
@@ -40,7 +56,7 @@ public class PlayerController : MonoBehaviour
 
     private void Awake()
     {
-        rb = GetComponent<Rigidbody>();
+        playerRb = GetComponent<Rigidbody>();
         inputHandler = PlayerInputHandler.Instance;
         mainCamera = inputHandler.Camera;
         playerTransform = transform;
@@ -53,6 +69,7 @@ public class PlayerController : MonoBehaviour
         verticalInput = inputHandler.MoveInput.y;
         curScreenPos = inputHandler.LookInput;
         grabInput = inputHandler.GrabInput;
+        //canGrab = inputHandler.CanGrab;
     }
 
     private void FixedUpdate()
@@ -61,7 +78,7 @@ public class PlayerController : MonoBehaviour
         HandleRotation();
         HandleYPosition();
 
-        if (grabInput)
+        if (CanGrab)
         {
             StartCoroutine(Drag());
         }
@@ -71,8 +88,8 @@ public class PlayerController : MonoBehaviour
     {
         float speed = moveSpeed;
         Vector3 camOffset = new Vector3(0f, cameraOffset, 0f);
-        //rb.velocity = new Vector3(horizontalInput * speed, 0f, verticalInput * speed);
-        rb.AddForce(new Vector3(horizontalInput * speed, 0f, verticalInput * speed));
+        playerRb.velocity = new Vector3(horizontalInput * speed, 0f, verticalInput * speed);
+        //playerRb.AddForce(new Vector3(horizontalInput * speed, 0f, verticalInput * speed));
         mainCamera.transform.localPosition = playerTransform.position + camOffset;
     }
 
@@ -80,7 +97,7 @@ public class PlayerController : MonoBehaviour
     {
         Vector3 directionToFace = MousePos - playerTransform.position;
         float angle = (180 / Mathf.PI) * Mathf.Atan2(directionToFace.z, directionToFace.x) - 90;
-        rb.MoveRotation(Quaternion.Euler(0f, -angle, 0f));
+        playerRb.MoveRotation(Quaternion.Euler(0f, -angle, 0f));
 
         Debug.DrawLine(playerTransform.position, MousePos, Color.green, Time.deltaTime);        
     }
@@ -100,24 +117,18 @@ public class PlayerController : MonoBehaviour
 
     private IEnumerator Drag()
     {
-        Ray ray = mainCamera.ScreenPointToRay(curScreenPos);
-        //GameObject beamable;
-        //Transform beamTransform;
-
-        if (Physics.Raycast(ray, out RaycastHit hit))
+        if (grabInput)
         {
-            //beamable = hit.transform.gameObject;
-            beamTransform = hit.transform;
-        }
-
-        while (grabInput)
-        {
-            // dragging game object
-            //transform.position = MousePos;
-
-            beamTransform.position = MousePos;
-            yield return null;
-            Debug.Log("Has grabbed");
+            Ray ray = mainCamera.ScreenPointToRay(curScreenPos);
+            Physics.Raycast(ray, out RaycastHit hit);
+            Transform hitTransform = hit.transform;
+            Rigidbody hitRb = hitTransform.gameObject.GetComponent<Rigidbody>();
+            while (grabInput)
+            {
+                hitRb.velocity = (MousePos - hitTransform.position) * attractSpeed;
+                //hitRb.AddForce((MousePos - hitTransform.position) * attractSpeed);
+                yield return null;
+            }
         }
     }
 }

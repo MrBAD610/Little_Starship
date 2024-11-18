@@ -40,18 +40,18 @@ public class PlayerInputHandler : MonoBehaviour
     //    }
     //}
 
-    private bool CanGrab
-    {
-        get
-        {
-            Ray ray = Camera.ScreenPointToRay(LookInput);
-            if (Physics.Raycast(ray, out RaycastHit hit))
-            {
-                return hit.transform.gameObject.layer == LayerMask.NameToLayer("Grabbable");
-            }
-            return false;
-        }
-    }
+    //public bool CanGrab
+    //{
+    //    get
+    //    {
+    //        Ray ray = Camera.ScreenPointToRay(LookInput);
+    //        if (Physics.Raycast(ray, out RaycastHit hit) && hit.transform.gameObject.TryGetComponent<Rigidbody>(out Rigidbody hitRb))
+    //        {
+    //            return hit.transform.gameObject.layer == LayerMask.NameToLayer("Grabbable");
+    //        }
+    //        return false;
+    //    }
+    //}
 
     public static PlayerInputHandler Instance { get; private set; }
 
@@ -84,7 +84,7 @@ public class PlayerInputHandler : MonoBehaviour
         lookAction.performed += context => LookInput = context.ReadValue<Vector2>();
         lookAction.canceled += context => LookInput = Vector2.zero;
 
-        grabAction.performed += context => GrabInput = CanGrab;
+        grabAction.performed += context => GrabInput = true;
         grabAction.canceled += context => GrabInput = false;
         //grabAction.performed += _ => { if (canGrab) StartCoroutine(Drag()); };
         //grabAction.canceled += _ => { isDraging = false; };
