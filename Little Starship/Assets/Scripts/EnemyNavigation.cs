@@ -46,12 +46,58 @@ public class EnemyNavigation : MonoBehaviour
 
     void Update()
     {
-        bool canDetect = Vector3.Distance(agentLocation.position, playerLocation.position) <= detectionRadius;
+        //check whether player is in sight and whether it's within attack range
+        playerInSightRange = Vector3.Distance(agentLocation.position, playerLocation.position) <= sightRange;
+        playerInAttackRange = Vector3.Distance(agentLocation.position, playerLocation.position) <= attackRange;
 
-        if (canDetect)
+        if (!playerInSightRange && !playerInAttackRange) Patroling();
+        if (playerInSightRange && !playerInAttackRange) ChasePlayer();
+        if (playerInSightRange && playerInAttackRange) AttackPlayer();
+    }
+
+    private void Patroling()
+    {
+        if (!walkPointSet) SearchWalkPoint();
+        if (walkPointSet)
         {
-            UpdatePath();
+            agent.SetDestination(walkPoint);
         }
+
+        Vector3 distanceToWalkPoint = agentLocation.position - walkPoint;
+
+        //Walkpoint reached
+        if (distanceToWalkPoint.magnitude < 1f)
+        {
+            walkPointSet = false;
+        }
+    }
+    private void SearchWalkPoint()
+    {
+        //Calculate random point in range
+        float randomX = Random.Range(-walkPointRange, walkPointRange);
+        float randomY = Random.Range(-walkPointRange, walkPointRange);
+        float randomZ = Random.Range(-walkPointRange, walkPointRange);
+
+        walkPoint = new Vector3(agentLocation.position.x + randomX, agentLocation.position.y + randomY, agentLocation.position.z + randomZ);
+
+        //Ensure destination is valid
+        if (NavMesh.SamplePosition(walkPoint, out NavMeshHit hit, 1.0f, NavMesh.AllAreas))
+        {
+            walkPoint = hit.position;
+            walkPointSet = true;
+        }
+    }
+
+    private void ChasePlayer()
+    {
+        UpdatePath();
+    }
+
+    private void AttackPlayer()
+    {
+        //Make sure enemy does not move
+        agent.SetDestination(agentLocation.position);
+        agentLocation.LookAt(playerLocation);
     }
 
     private void UpdatePath()
@@ -62,5 +108,14 @@ public class EnemyNavigation : MonoBehaviour
             pathUpdateDeadline = Time.time + pathUpdateDelay;
             agent.SetDestination(playerLocation.position);
         }
+    }
+
+    private void OnDrawGizmosSelected()
+    {
+        //Show the Attack range and the Sight range
+        Gizmos.color = Color.red;
+        Gizmos.DrawWireSphere(agentLocation.position, attackRange);
+        Gizmos.color = Color.yellow;
+        Gizmos.DrawWireSphere(agentLocation.position, sightRange);
     }
 }
