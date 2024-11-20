@@ -7,11 +7,13 @@ public class PlayerHealth : MonoBehaviour
 {
     public float maxHealth = 100.0f;
     public float currentHealth = 75.0f;
-    public float knockBack = 10.0f;
+    //public float knockBack = 10.0f;
 
     public Slider healthBar;
-    private Transform playerTransform;
-    private Rigidbody playerRigidB;
+    //private Transform playerTransform;
+    //private Rigidbody playerRigidB;
+
+    public bool isAlive = true;
 
     // Start is called before the first frame update
     void Start()
@@ -20,8 +22,8 @@ public class PlayerHealth : MonoBehaviour
         healthBar.maxValue = maxHealth;
         healthBar.value = currentHealth;
 
-        playerTransform = transform;
-        playerRigidB = GetComponent<Rigidbody>();
+        //playerTransform = transform;
+        //playerRigidB = GetComponent<Rigidbody>();
     }
 
     // Update is called once per frame
@@ -37,7 +39,7 @@ public class PlayerHealth : MonoBehaviour
 
         if (currentHealth <= 0)
         {
-            Destroy(gameObject);
+            isAlive = false;
         }
     }
 
@@ -46,7 +48,7 @@ public class PlayerHealth : MonoBehaviour
         if (collision.gameObject.CompareTag("Enemy"))
         {
             TakeDamage(15);
-            playerRigidB.AddForce(collision.transform.position - playerTransform.position * knockBack, ForceMode.Impulse);
+            //playerRigidB.AddForce(collision.transform.position - playerTransform.position * knockBack, ForceMode.Impulse);
         }
     }
 }

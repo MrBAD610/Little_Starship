@@ -20,10 +20,8 @@ public class PlayerInputHandler : MonoBehaviour
     private InputAction lookAction;
     private InputAction grabAction;
 
-    //private Vector3 curScreenPos;
-
-    //Camera cam;
-    public Camera Camera { get; private set; }
+    //public Camera Camera { get; private set; }
+    public Camera Camera;
     public GameObject ObjectUnderPoint { get; private set; }
 
     public Vector2 MoveInput { get; private set; }
@@ -62,13 +60,13 @@ public class PlayerInputHandler : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        else
-        {
-            Destroy(gameObject);
-        }
+        //else
+        //{
+        //    Destroy(gameObject);
+        //}
 
-        //cam = Camera.main;
-        Camera = Camera.main;
+
+        //Camera = Camera.main;
 
         moveAction = playerControls.FindActionMap(actionMapName).FindAction(move);
         lookAction = playerControls.FindActionMap(actionMapName).FindAction(look);
