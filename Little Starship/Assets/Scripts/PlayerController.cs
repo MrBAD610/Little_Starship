@@ -21,7 +21,7 @@ public class PlayerController : MonoBehaviour
 
     private PlayerInputHandler inputHandler;
 
-    private Camera mainCamera;
+    public Camera mainCamera;
 
     private Transform playerTransform;
     //private Transform beamTransform;
@@ -30,6 +30,8 @@ public class PlayerController : MonoBehaviour
     private float verticalInput;
     public bool grabInput;
     //public bool canGrab;
+
+    private PlayerHealth playerHealth;
 
     public bool CanGrab
     {
@@ -58,8 +60,9 @@ public class PlayerController : MonoBehaviour
     {
         playerRb = GetComponent<Rigidbody>();
         inputHandler = PlayerInputHandler.Instance;
-        mainCamera = inputHandler.Camera;
+        //mainCamera = inputHandler.Camera;
         playerTransform = transform;
+        playerHealth = GetComponent<PlayerHealth>();
     }
 
     // Update is called once per frame
@@ -74,13 +77,16 @@ public class PlayerController : MonoBehaviour
 
     private void FixedUpdate()
     {
-        HandleMovement();
-        HandleRotation();
-        HandleYPosition();
-
-        if (CanGrab)
+        if (playerHealth.isAlive)
         {
-            StartCoroutine(Drag());
+            HandleMovement();
+            HandleRotation();
+            HandleYPosition();
+
+            if (CanGrab)
+            {
+                StartCoroutine(Drag());
+            }
         }
     }
 
