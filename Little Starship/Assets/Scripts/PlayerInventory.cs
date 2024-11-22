@@ -11,6 +11,8 @@ public class PlayerInventory : MonoBehaviour
     public Sprite fullSlot;
     public Sprite emptySlot;
 
+    private int selectedColonistIndex = 0; // Tracks the currently selected colonist
+
     private Transform playerTransform;
 
     private void Awake()
@@ -32,24 +34,44 @@ public class PlayerInventory : MonoBehaviour
     {
         for (int i = 0; i < colonistSlots.Length; i++)
         {
-            if (i < storedColonists.Count)
-            {
-                colonistSlots[i].sprite = fullSlot;
-            }
-            else
-            {
-                colonistSlots[i].sprite = emptySlot;
-            }
-
             if (i < slotNum)
             {
                 colonistSlots[i].enabled = true;
+
+                if (i < storedColonists.Count)
+                {
+                    colonistSlots[i].sprite = fullSlot;
+                }
+                else
+                {
+                    colonistSlots[i].sprite = emptySlot;
+                }
+                
+                colonistSlots[i].color = (i == selectedColonistIndex) ? Color.green : Color.white; // Highlight the selected colonist slot
             }
             else
             {
                 colonistSlots[i].enabled = false;
             }
         }
+    }
+
+    public void SelectNextColonist()
+    {
+        if (storedColonists.Count == 0) return;
+
+        selectedColonistIndex = (selectedColonistIndex + 1) % storedColonists.Count;
+        UpdateUISlots(); // Update colonist slots UI after selecting next slot
+        Debug.Log($"Selected colonist: {storedColonists[selectedColonistIndex].name}");
+    }
+
+    public void SelectPreviousColonist()
+    {
+        if (storedColonists.Count == 0) return;
+
+        selectedColonistIndex = (selectedColonistIndex - 1 + storedColonists.Count) % storedColonists.Count;
+        UpdateUISlots(); // Update colonist slots UI after selecting previous slot
+        Debug.Log($"Selected colonist: {storedColonists[selectedColonistIndex].name}");
     }
 
     public void CollectColonist(Colonist colonist)

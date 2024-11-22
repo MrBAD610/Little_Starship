@@ -15,11 +15,13 @@ public class PlayerInputHandler : MonoBehaviour
     [SerializeField] private string move = "Move";
     [SerializeField] private string look = "Look";
     [SerializeField] private string grab = "Grab";
+    [SerializeField] private string cycle = "Cycle";
     [SerializeField] private string eject = "Eject";
 
     private InputAction moveAction;
     private InputAction lookAction;
     private InputAction grabAction;
+    private InputAction cycleAction;
     private InputAction ejectAction;
 
     //public Camera Camera { get; private set; }
@@ -29,6 +31,7 @@ public class PlayerInputHandler : MonoBehaviour
     public Vector2 MoveInput { get; private set; }
     public Vector2 LookInput { get; private set; }
     public bool GrabInput { get; private set; }
+    public float CycleInput { get; private set; } // -1 for previous slot, 1 for next slot
     public bool EjectInput { get; private set; }
 
     //private bool isDraging;
@@ -74,6 +77,7 @@ public class PlayerInputHandler : MonoBehaviour
         moveAction = playerControls.FindActionMap(actionMapName).FindAction(move);
         lookAction = playerControls.FindActionMap(actionMapName).FindAction(look);
         grabAction = playerControls.FindActionMap(actionMapName).FindAction(grab);
+        cycleAction = playerControls.FindActionMap(actionMapName).FindAction(cycle);
         ejectAction = playerControls.FindActionMap(actionMapName).FindAction(eject);
         RegisterInputActions();
     }
@@ -91,6 +95,9 @@ public class PlayerInputHandler : MonoBehaviour
         //grabAction.performed += _ => { if (canGrab) StartCoroutine(Drag()); };
         //grabAction.canceled += _ => { isDraging = false; };
 
+        cycleAction.performed += context => CycleInput = context.ReadValue<float>();
+        cycleAction.canceled += context => CycleInput = 0;
+
         ejectAction.performed += context => EjectInput = true;
         ejectAction.canceled += context => EjectInput = false;
     }
@@ -100,6 +107,7 @@ public class PlayerInputHandler : MonoBehaviour
         moveAction.Enable();
         lookAction.Enable();
         grabAction.Enable();
+        cycleAction.Enable();
         ejectAction.Enable();
     }
 
@@ -108,6 +116,7 @@ public class PlayerInputHandler : MonoBehaviour
         moveAction.Disable();
         lookAction.Disable();
         grabAction.Disable();
+        cycleAction.Disable();
         ejectAction.Disable();
     }
 

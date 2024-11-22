@@ -13,6 +13,9 @@ public class PlayerController : MonoBehaviour
     [Header("Tractor Beam Settings")]
     [SerializeField] private float attractSpeed = 1.0f;
 
+    [Header("Colonist Slot Cycling Settings")]
+    [SerializeField] private float cycleSlotCooldown = 0.2f;
+
     [Header("Camera Settings")]
     [SerializeField] private float cameraOffset = 5.0f;
 
@@ -29,7 +32,10 @@ public class PlayerController : MonoBehaviour
     private float horizontalInput;
     private float verticalInput;
     public bool grabInput;
+    private float cycleInput;
     private bool ejectInput;
+
+    private float timeOfLastCycle = 0f;
 
     private bool hasEjected = false; // Prevent multiple ejections on a single press
 
@@ -79,6 +85,7 @@ public class PlayerController : MonoBehaviour
         verticalInput = inputHandler.MoveInput.y;
         curScreenPos = inputHandler.LookInput;
         grabInput = inputHandler.GrabInput;
+        cycleInput = inputHandler.CycleInput;
         ejectInput = inputHandler.EjectInput;
 
         Debug.Log($"Eject Input: {ejectInput}");
@@ -97,12 +104,25 @@ public class PlayerController : MonoBehaviour
                 StartCoroutine(Drag());
             }
 
+            if (Time.time - timeOfLastCycle > cycleSlotCooldown)
+            {
+                if (cycleInput > 0f) // Cycle to next colonist
+                {
+                    playerInventory.SelectNextColonist();
+                    timeOfLastCycle = Time.time;
+                }
+                else if (cycleInput < 0f) // Cycle to previous colonist
+                {
+                    playerInventory.SelectPreviousColonist();
+                    timeOfLastCycle = Time.time;
+                }
+            }
+
             if (ejectInput && !hasEjected)
             {
                 Eject();
                 hasEjected = true; // Prevent multiple colonists from being ejected
             }
-
             if (!ejectInput)
             {
                 hasEjected = false; // Allow another colonist to be ejected
