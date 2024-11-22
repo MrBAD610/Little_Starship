@@ -4,14 +4,17 @@ using UnityEngine;
 
 public class Colonist : MonoBehaviour
 {
-    private void OnTriggerEnter(Collider other)
-    {
-        PlayerInventory playerInventory = other.GetComponent<PlayerInventory>();
+    public List<MedicalEmergency> emergencies;
 
-        if (playerInventory != null)
-        {
-            playerInventory.ColonistCollected();
-            gameObject.SetActive(false);
-        }
-    }
+
+    //private void OnTriggerEnter(Collider other)
+    //{
+    //    PlayerInventory playerInventory = other.GetComponent<PlayerInventory>();
+
+    //    if (playerInventory != null)
+    //    {
+    //        playerInventory.ColonistCollected();
+    //        gameObject.SetActive(false);
+    //    }
+    //}
 }
