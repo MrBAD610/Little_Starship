@@ -6,7 +6,7 @@ using UnityEngine.UI;
 public class PlayerInventory : MonoBehaviour
 {
     public int slotNum = 3;     // Number of slots for storing colonists
-    public List<Colonist> storedColonists = new();
+    public List<Colonist> storedColonists = new(); // List of filled colonist slots
     public Image[] colonistSlots;
     public Sprite fullSlot;
     public Sprite emptySlot;
@@ -46,7 +46,7 @@ public class PlayerInventory : MonoBehaviour
                 {
                     colonistSlots[i].sprite = emptySlot;
                 }
-                
+
                 colonistSlots[i].color = (i == selectedColonistIndex) ? Color.green : Color.white; // Highlight the selected colonist slot
             }
             else
@@ -58,20 +58,24 @@ public class PlayerInventory : MonoBehaviour
 
     public void SelectNextColonist()
     {
-        if (storedColonists.Count == 0) return;
+        //if (storedColonists.Count == 0) return;
 
-        selectedColonistIndex = (selectedColonistIndex + 1) % storedColonists.Count;
+        //selectedColonistIndex = (selectedColonistIndex + 1) % storedColonists.Count;
+
+        selectedColonistIndex = (selectedColonistIndex + 1) % slotNum;
         UpdateUISlots(); // Update colonist slots UI after selecting next slot
-        Debug.Log($"Selected colonist: {storedColonists[selectedColonistIndex].name}");
+        Debug.Log($"Selected colonist: {selectedColonistIndex}");
     }
 
     public void SelectPreviousColonist()
     {
-        if (storedColonists.Count == 0) return;
+        //if (storedColonists.Count == 0) return;
 
-        selectedColonistIndex = (selectedColonistIndex - 1 + storedColonists.Count) % storedColonists.Count;
+        //selectedColonistIndex = (selectedColonistIndex - 1 + storedColonists.Count) % storedColonists.Count;
+
+        selectedColonistIndex = (selectedColonistIndex - 1 + slotNum) % slotNum;
         UpdateUISlots(); // Update colonist slots UI after selecting previous slot
-        Debug.Log($"Selected colonist: {storedColonists[selectedColonistIndex].name}");
+        Debug.Log($"Selected colonist: {selectedColonistIndex}");
     }
 
     public void CollectColonist(Colonist colonist)
