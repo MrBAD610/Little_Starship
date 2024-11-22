@@ -112,10 +112,12 @@ public class EnemyNavigation : MonoBehaviour
 
     private void OnDrawGizmosSelected()
     {
+        if (transform == null) return;
+
         //Show the Attack range and the Sight range
         Gizmos.color = Color.red;
-        Gizmos.DrawWireSphere(agentLocation.position, attackRange);
+        Gizmos.DrawWireSphere(transform.position, attackRange);
         Gizmos.color = Color.yellow;
-        Gizmos.DrawWireSphere(agentLocation.position, sightRange);
+        Gizmos.DrawWireSphere(transform.position, sightRange);
     }
 }

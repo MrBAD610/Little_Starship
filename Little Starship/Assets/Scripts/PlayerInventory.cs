@@ -7,7 +7,6 @@ public class PlayerInventory : MonoBehaviour
 {
     public int slotNum = 3;     // Number of slots for storing colonists
     public List<Colonist> storedColonists = new();
-
     public Image[] colonistSlots;
     public Sprite fullSlot;
     public Sprite emptySlot;
@@ -24,10 +23,10 @@ public class PlayerInventory : MonoBehaviour
         UpdateUISlots(); // Initial colonist slots UI update
     }
 
-    private void Update()
-    {
+    //private void Update()
+    //{
 
-    }
+    //}
 
     public void UpdateUISlots()
     {
