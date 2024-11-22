@@ -6,14 +6,30 @@ using UnityEngine.UI;
 public class PlayerInventory : MonoBehaviour
 {
     public int slotNum = 3;     // Number of slots for storing colonists
-    private List<Colonist> storedColonists = new();
-    //private int colonistNum = 0;
+    public List<Colonist> storedColonists = new();
 
     public Image[] colonistSlots;
     public Sprite fullSlot;
     public Sprite emptySlot;
 
+    private Transform playerTransform;
+
+    private void Awake()
+    {
+        playerTransform = transform;
+    }
+
+    private void Start()
+    {
+        UpdateUISlots(); // Initial colonist slots UI update
+    }
+
     private void Update()
+    {
+
+    }
+
+    public void UpdateUISlots()
     {
         for (int i = 0; i < colonistSlots.Length; i++)
         {
@@ -47,33 +63,20 @@ public class PlayerInventory : MonoBehaviour
 
         storedColonists.Add(colonist); // Add colonist data to stored colonist list
         colonist.gameObject.SetActive(false); // Deactivate colonist in the scene
+        UpdateUISlots(); // Update colonist slots UI to account for colonist collected
         Debug.Log($"Colonist Collected. Slots remaining: {slotNum - storedColonists.Count}/{slotNum}");
-
-        //NumberOfCollonists++;
-        //colonistNum++;
     }
 
-    //private void OnCollisionEnter(Collision other)
-    //{
-    //    if (other.gameObject.tag == "Colonist")
-    //    {
-    //        Debug.Log("A collider has made contact with the Colonist Collider");
-
-    //        if (colonistNum < slotNum)
-    //        {
-    //            ColonistCollected();
-    //            other.gameObject.SetActive(false);
-    //            Debug.Log("Colonist Collected");
-    //        }
-    //        else
-    //        {
-    //            Debug.Log("No room for Colonist");
-    //        }
-
-    //    }
-    //    else
-    //    {
-    //        Debug.Log("Collision Detected");
-    //    }
-    //}
+    public void EjectColonist(Colonist colonist)
+    {
+        if (storedColonists.Contains(colonist))
+        {
+            storedColonists.Remove(colonist);
+            colonist.transform.position = playerTransform.position + playerTransform.forward; // Eject colonist near player (1 unit in front of)
+            colonist.gameObject.SetActive(true); // Reactivate colonist in the scene
+            UpdateUISlots(); // Update colonist slots UI to account for colonist ejected
+            colonist.gameObject.GetComponent<Rigidbody>().velocity = playerTransform.forward; // Have ejected colonist moving away from player
+            Debug.Log($"Colonist Ejected. Slots remaining: {slotNum - storedColonists.Count}/{slotNum}");
+        }
+    }
 }

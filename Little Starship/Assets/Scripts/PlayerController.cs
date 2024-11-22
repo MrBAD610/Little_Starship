@@ -9,7 +9,6 @@ public class PlayerController : MonoBehaviour
 
     [Header("Position Settings")]
     [SerializeField] private float yPosition = 0f;
-    //[SerializeField] private float yCorrectionSpeed = 1f;
 
     [Header("Tractor Beam Settings")]
     [SerializeField] private float attractSpeed = 1.0f;
@@ -20,18 +19,19 @@ public class PlayerController : MonoBehaviour
     private Rigidbody playerRb;
 
     private PlayerInputHandler inputHandler;
+    private PlayerInventory playerInventory;
+    private PlayerHealth playerHealth;
 
     public Camera mainCamera;
 
     private Transform playerTransform;
-    //private Transform beamTransform;
 
     private float horizontalInput;
     private float verticalInput;
     public bool grabInput;
-    //public bool canGrab;
+    private bool ejectInput;
 
-    private PlayerHealth playerHealth;
+    private bool hasEjected = false; // Prevent multiple ejections on a single press
 
     public bool CanGrab
     {
@@ -56,13 +56,20 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Awake is called when the object is loaded before start
     private void Awake()
     {
+        playerTransform = transform;
         playerRb = GetComponent<Rigidbody>();
+        playerInventory = GetComponent<PlayerInventory>();
+        playerHealth = GetComponent<PlayerHealth>();
+    }
+    
+    //Start is called before the first frame update
+    private void Start()
+    {
         inputHandler = PlayerInputHandler.Instance;
         //mainCamera = inputHandler.Camera;
-        playerTransform = transform;
-        playerHealth = GetComponent<PlayerHealth>();
     }
 
     // Update is called once per frame
@@ -72,7 +79,9 @@ public class PlayerController : MonoBehaviour
         verticalInput = inputHandler.MoveInput.y;
         curScreenPos = inputHandler.LookInput;
         grabInput = inputHandler.GrabInput;
-        //canGrab = inputHandler.CanGrab;
+        ejectInput = inputHandler.EjectInput;
+
+        Debug.Log($"Eject Input: {ejectInput}");
     }
 
     private void FixedUpdate()
@@ -86,6 +95,17 @@ public class PlayerController : MonoBehaviour
             if (CanGrab)
             {
                 StartCoroutine(Drag());
+            }
+
+            if (ejectInput && !hasEjected)
+            {
+                Eject();
+                hasEjected = true; // Prevent multiple colonists from being ejected
+            }
+
+            if (!ejectInput)
+            {
+                hasEjected = false; // Allow another colonist to be ejected
             }
         }
     }
@@ -116,9 +136,19 @@ public class PlayerController : MonoBehaviour
         {
             playerTransform.position = desiredPosition;
         }
+    }
 
-        //rb.velocity = desiredPosition - rb.position;
-        //rb.AddForce((desiredPosition - rb.position) * yCorrectionSpeed, ForceMode.Force);
+    void Eject()
+    {
+        if (playerInventory.storedColonists.Count > 0)
+        {
+            var colonistToEject = playerInventory.storedColonists[0]; // Drop the first colonist
+            playerInventory.EjectColonist(colonistToEject);
+        }
+        else
+        {
+            Debug.Log("No colonists to eject");
+        }
     }
 
     private IEnumerator Drag()
