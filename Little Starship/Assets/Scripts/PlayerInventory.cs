@@ -5,11 +5,14 @@ using UnityEngine.UI;
 
 public class PlayerInventory : MonoBehaviour
 {
-    public int slotNum = 3;     // Number of slots for storing colonists
-    public List<Colonist> slotList; // List of colonist slots full and empty
-    public Image[] colonistSlots;
-    public Sprite fullSlot;
-    public Sprite emptySlot;
+    [Header("Inventory Settings")]
+    [SerializeField] public int numberOfSlots = 3;     // Number of slots for storing colonists
+    [SerializeField] public List<Colonist> slotList;   // List of colonist slots full and empty
+
+    [Header("UI Settings")]
+    [SerializeField] public Image[] colonistSlotSprites;
+    [SerializeField] public Sprite fullSlotSprite;
+    [SerializeField] public Sprite emptySlotSprite;
 
     private int selectedColonistIndex = 0; // Tracks the currently selected colonist
     private int filledSlots = 0;
@@ -19,95 +22,69 @@ public class PlayerInventory : MonoBehaviour
     private void Awake()
     {
         playerTransform = transform;
+        InstantiateSlotList();
     }
 
     private void Start()
     {
-        InstantiateSlotList();
         UpdateUISlots(); // Initial colonist slots UI update
-    }
-
-    //private void Update()
-    //{
-
-    //}
-
-    public void UpdateUISlots()
-    {
-        for (int i = 0; i < colonistSlots.Length; i++)
-        {
-            if (i < slotNum)
-            {
-                colonistSlots[i].enabled = true;
-
-                if (slotList[i] != null)
-                {
-                    colonistSlots[i].sprite = fullSlot;
-                }
-                else
-                {
-                    colonistSlots[i].sprite = emptySlot;
-                }
-
-                colonistSlots[i].color = (i == selectedColonistIndex) ? Color.green : Color.white; // Highlight the selected colonist slot
-            }
-            else
-            {
-                colonistSlots[i].enabled = false;
-            }
-        }
-
-        //for (int i = 0; i < colonistSlots.Length; i++)
-        //{
-        //    if (i < slotNum)
-        //    {
-        //        colonistSlots[i].enabled = true;
-
-        //        if (i < storedColonists.Count)
-        //        {
-        //            colonistSlots[i].sprite = fullSlot;
-        //        }
-        //        else
-        //        {
-        //            colonistSlots[i].sprite = emptySlot;
-        //        }
-
-        //        colonistSlots[i].color = (i == selectedColonistIndex) ? Color.green : Color.white; // Highlight the selected colonist slot
-        //    }
-        //    else
-        //    {
-        //        colonistSlots[i].enabled = false;
-        //    }
-        //}
     }
 
     private void InstantiateSlotList()
     {
-        slotList = new();
+        //Initializes a new List<Colonist> with a predefined capacity of numberOfSlots and fills it with null values
+        slotList = new List<Colonist>(new Colonist[numberOfSlots]);
 
-        for (int x = 0; x < slotNum; x++)
+        //slotList = new();
+        //for (int x = 0; x < numberOfSlots; x++)
+        //{
+        //    slotList.Add(null);
+        //}
+    }
+
+    public void UpdateUISlots()
+    {
+        for (int i = 0; i < colonistSlotSprites.Length; i++)
         {
-            slotList.Add(null);
+            if (i < numberOfSlots)
+            {
+                colonistSlotSprites[i].enabled = true;
+
+                if (slotList[i] != null)
+                {
+                    colonistSlotSprites[i].sprite = fullSlotSprite;
+                }
+                else
+                {
+                    colonistSlotSprites[i].sprite = emptySlotSprite;
+                }
+
+                colonistSlotSprites[i].color = (i == selectedColonistIndex) ? Color.green : Color.white; // Highlight the selected colonist slot
+            }
+            else
+            {
+                colonistSlotSprites[i].enabled = false;
+            }
         }
     }
 
     public void SelectNextColonist()
     {
-        selectedColonistIndex = (selectedColonistIndex + 1) % slotNum;
+        selectedColonistIndex = (selectedColonistIndex + 1) % numberOfSlots;
         UpdateUISlots(); // Update colonist slots UI after selecting next slot
         Debug.Log($"Selected next colonist slot, slot {selectedColonistIndex}");
     }
 
     public void SelectPreviousColonist()
     {
-        selectedColonistIndex = (selectedColonistIndex - 1 + slotNum) % slotNum;
+        selectedColonistIndex = (selectedColonistIndex - 1 + numberOfSlots) % numberOfSlots;
         UpdateUISlots(); // Update colonist slots UI after selecting previous slot
         Debug.Log($"Selected previous colonist slot, slot {selectedColonistIndex}");
     }
 
     public void CollectColonist(Colonist colonist)
     {
-        if (filledSlots >= slotNum)
+        if (filledSlots >= numberOfSlots)
         {
             Debug.Log("No room for Colonist"); // Notify player that there is no room for more colonists
             return;
@@ -130,49 +107,30 @@ public class PlayerInventory : MonoBehaviour
 
         colonist.gameObject.SetActive(false); // Deactivate colonist in the scene
         UpdateUISlots(); // Update colonist slots UI to account for colonist collected
-        Debug.Log($"Colonist Collected. Slots remaining: {slotNum - filledSlots}/{slotNum}");
-
-        //if (storedColonists.Count >= slotNum)
-        //{
-        //    Debug.Log("No room for Colonist"); // Notify player that there is no room for more colonists
-        //    return;
-        //}
-
-        //storedColonists.Add(colonist); // Add colonist data to stored colonist list
-        //colonist.gameObject.SetActive(false); // Deactivate colonist in the scene
-        //UpdateUISlots(); // Update colonist slots UI to account for colonist collected
-        //Debug.Log($"Colonist Collected. Slots remaining: {slotNum - storedColonists.Count}/{slotNum}");
+        Debug.Log($"Colonist Collected. Slots remaining: {numberOfSlots - filledSlots}/{numberOfSlots}");
     }
 
     public void EjectColonist()
     {
-        if (slotList[selectedColonistIndex] != null)
-        {
-            --filledSlots;
-            Colonist colonist = slotList[selectedColonistIndex];
-            slotList[selectedColonistIndex] = null;
-            colonist.transform.position = playerTransform.position + playerTransform.forward; // Eject colonist near player (1 unit in front of)
-            colonist.gameObject.SetActive(true); // Reactivate colonist in the scene
-            UpdateUISlots(); // Update colonist slots UI to account for colonist ejected
-            colonist.gameObject.GetComponent<Rigidbody>().velocity = playerTransform.forward; // Have ejected colonist moving away from player
-            Debug.Log($"Colonist Ejected. Slots remaining: {slotNum - filledSlots}/{slotNum}");
-        }
-        else
+        if (slotList[selectedColonistIndex] == null)
         {
             Debug.Log($"Slot {selectedColonistIndex} is empty, can't eject");
+            return;
         }
-    }
 
-    //public void EjectColonist(Colonist colonist)
-    //{
-    //    if (storedColonists.Contains(colonist))
-    //    {
-    //        storedColonists.Remove(colonist);
-    //        colonist.transform.position = playerTransform.position + playerTransform.forward; // Eject colonist near player (1 unit in front of)
-    //        colonist.gameObject.SetActive(true); // Reactivate colonist in the scene
-    //        UpdateUISlots(); // Update colonist slots UI to account for colonist ejected
-    //        colonist.gameObject.GetComponent<Rigidbody>().velocity = playerTransform.forward; // Have ejected colonist moving away from player
-    //        Debug.Log($"Colonist Ejected. Slots remaining: {slotNum - storedColonists.Count}/{slotNum}");
-    //    }
-    //}
+        Colonist colonist = slotList[selectedColonistIndex];
+        slotList[selectedColonistIndex] = null;
+        --filledSlots;
+
+        colonist.transform.position = playerTransform.position + playerTransform.forward; // Eject colonist near player (1 unit in front of)
+        colonist.gameObject.SetActive(true); // Reactivate colonist in the scene
+        Rigidbody colonistRb = colonist.gameObject.GetComponent<Rigidbody>();
+        if (colonistRb != null)
+        {
+            colonistRb.velocity = playerTransform.forward; // Apply velocity to have ejected colonist moving away from player
+        }
+
+        UpdateUISlots(); // Update colonist slots UI to account for colonist ejected
+        Debug.Log($"Colonist Ejected. Slots remaining: {numberOfSlots - filledSlots}/{numberOfSlots}");
+    }
 }
