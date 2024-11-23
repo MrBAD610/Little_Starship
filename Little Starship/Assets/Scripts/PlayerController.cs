@@ -160,10 +160,12 @@ public class PlayerController : MonoBehaviour
 
     void Eject()
     {
-        if (playerInventory.storedColonists.Count > 0)
+        if (playerInventory.slotList.Count > 0)
         {
-            var colonistToEject = playerInventory.storedColonists[0]; // Drop the first colonist
-            playerInventory.EjectColonist(colonistToEject);
+            //var colonistToEject = playerInventory.storedColonists[0]; // Drop the first colonist
+            //playerInventory.EjectColonist(colonistToEject);
+
+            playerInventory.EjectColonist();
         }
         else
         {
