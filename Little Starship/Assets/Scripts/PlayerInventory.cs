@@ -10,7 +10,7 @@ public class PlayerInventory : MonoBehaviour
     [SerializeField] public List<Colonist> slotList;   // List of colonist slots full and empty
 
     [Header("UI Settings")]
-    [SerializeField] public Image[] colonistSlotSprites;
+    [SerializeField] public Image[] colonistSlotImages;
     [SerializeField] public Sprite fullSlotSprite;
     [SerializeField] public Sprite emptySlotSprite;
 
@@ -22,63 +22,72 @@ public class PlayerInventory : MonoBehaviour
     private void Awake()
     {
         playerTransform = transform;
-        InstantiateSlotList();
     }
 
     private void Start()
     {
-        UpdateUISlots(); // Initial colonist slots UI update
+        InstantiateSlots(); // Instantiate slot list and slot UI
     }
 
-    private void InstantiateSlotList()
+    private void InstantiateSlots()
     {
-        //Initializes a new List<Colonist> with a predefined capacity of numberOfSlots and fills it with null values
-        slotList = new List<Colonist>(new Colonist[numberOfSlots]);
-
-        //slotList = new();
-        //for (int x = 0; x < numberOfSlots; x++)
-        //{
-        //    slotList.Add(null);
-        //}
-    }
-
-    public void UpdateUISlots()
-    {
-        for (int i = 0; i < colonistSlotSprites.Length; i++)
+        slotList = new List<Colonist>(new Colonist[numberOfSlots]); // Initialize slotList filled with preset capacity, numberOfSlots, of null values
+        
+        for (int i = 0; i < colonistSlotImages.Length; i++)
         {
             if (i < numberOfSlots)
             {
-                colonistSlotSprites[i].enabled = true;
+                colonistSlotImages[i].enabled = true;
 
                 if (slotList[i] != null)
                 {
-                    colonistSlotSprites[i].sprite = fullSlotSprite;
+                    colonistSlotImages[i].sprite = fullSlotSprite;
                 }
                 else
                 {
-                    colonistSlotSprites[i].sprite = emptySlotSprite;
+                    colonistSlotImages[i].sprite = emptySlotSprite;
                 }
 
-                colonistSlotSprites[i].color = (i == selectedColonistIndex) ? Color.green : Color.white; // Highlight the selected colonist slot
+                colonistSlotImages[i].color = (i == selectedColonistIndex) ? Color.green : Color.white; // Highlight the selected colonist slot
             }
             else
             {
-                colonistSlotSprites[i].enabled = false;
+                colonistSlotImages[i].enabled = false;
             }
         }
     }
 
+
+    public void UpdateUISlot(int index)
+    {
+        if (index >= numberOfSlots) return;
+
+        if (slotList[index] != null)
+        {
+            colonistSlotImages[index].sprite = fullSlotSprite;
+        }
+        else
+        {
+            colonistSlotImages[index].sprite = emptySlotSprite;
+        }
+
+        colonistSlotImages[index].color = (index == selectedColonistIndex) ? Color.green : Color.white; // Highlight the selected colonist slot
+
+    }
+
     public void SelectNextColonist()
     {
+        colonistSlotImages[selectedColonistIndex].color = Color.white; // Reset old slot color
         selectedColonistIndex = (selectedColonistIndex + 1) % numberOfSlots;
-        UpdateUISlots(); // Update colonist slots UI after selecting next slot
+        colonistSlotImages[selectedColonistIndex].color = Color.green; // Highlight newly selected slot
         Debug.Log($"Selected next colonist slot, slot {selectedColonistIndex}");
     }
 
     public void SelectPreviousColonist()
     {
+        colonistSlotImages[selectedColonistIndex].color = Color.white; // Reset old slot color
         selectedColonistIndex = (selectedColonistIndex - 1 + numberOfSlots) % numberOfSlots;
-        UpdateUISlots(); // Update colonist slots UI after selecting previous slot
+        colonistSlotImages[selectedColonistIndex].color = Color.green; // Highlight newly selected slot
         Debug.Log($"Selected previous colonist slot, slot {selectedColonistIndex}");
     }
 
@@ -94,6 +103,7 @@ public class PlayerInventory : MonoBehaviour
         if (slotList[selectedColonistIndex] == null)
         {
             slotList[selectedColonistIndex] = colonist; // Add colonist data to stored colonist list at selected slot if empty
+            UpdateUISlot(selectedColonistIndex); // Update colonist slots UI to account for colonist collected
         }
         else
         {
@@ -103,10 +113,10 @@ public class PlayerInventory : MonoBehaviour
                 ++firstEmptySlotIndex;
             }
             slotList[firstEmptySlotIndex] = colonist; // Add colonist data to stored colonist list first empty slot
+            UpdateUISlot(firstEmptySlotIndex); // Update colonist slots UI to account for colonist collected
         }
 
         colonist.gameObject.SetActive(false); // Deactivate colonist in the scene
-        UpdateUISlots(); // Update colonist slots UI to account for colonist collected
         Debug.Log($"Colonist Collected. Slots remaining: {numberOfSlots - filledSlots}/{numberOfSlots}");
     }
 
@@ -124,13 +134,14 @@ public class PlayerInventory : MonoBehaviour
 
         colonist.transform.position = playerTransform.position + playerTransform.forward; // Eject colonist near player (1 unit in front of)
         colonist.gameObject.SetActive(true); // Reactivate colonist in the scene
-        Rigidbody colonistRb = colonist.gameObject.GetComponent<Rigidbody>();
+
+        Rigidbody colonistRb = colonist.ColonistRigidbody;
         if (colonistRb != null)
         {
             colonistRb.velocity = playerTransform.forward; // Apply velocity to have ejected colonist moving away from player
         }
 
-        UpdateUISlots(); // Update colonist slots UI to account for colonist ejected
+        UpdateUISlot(selectedColonistIndex); // Update colonist slots UI to account for colonist ejected
         Debug.Log($"Colonist Ejected. Slots remaining: {numberOfSlots - filledSlots}/{numberOfSlots}");
     }
 }

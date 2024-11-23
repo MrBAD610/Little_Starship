@@ -5,6 +5,12 @@ using UnityEngine;
 public class Colonist : MonoBehaviour
 {
     public List<MedicalEmergency> emergencies;
+    public Rigidbody ColonistRigidbody { get; private set; }
+
+    private void Awake()
+    {
+        ColonistRigidbody = GetComponent<Rigidbody>();
+    }
 
     private void OnCollisionEnter(Collision other)
     {
