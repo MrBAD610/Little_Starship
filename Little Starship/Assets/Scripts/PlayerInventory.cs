@@ -32,46 +32,43 @@ public class PlayerInventory : MonoBehaviour
     private void InstantiateSlots()
     {
         slotList = new List<Colonist>(new Colonist[numberOfSlots]); // Initialize slotList filled with preset capacity, numberOfSlots, of null values
-        
         for (int i = 0; i < colonistSlotImages.Length; i++)
         {
+            var slotImage = colonistSlotImages[i]; // Cache reference
             if (i < numberOfSlots)
             {
-                colonistSlotImages[i].enabled = true;
-
-                if (slotList[i] != null)
-                {
-                    colonistSlotImages[i].sprite = fullSlotSprite;
-                }
-                else
-                {
-                    colonistSlotImages[i].sprite = emptySlotSprite;
-                }
-
-                colonistSlotImages[i].color = (i == selectedColonistIndex) ? Color.green : Color.white; // Highlight the selected colonist slot
+                slotImage.enabled = true;
+                slotImage.sprite = emptySlotSprite;
+                slotImage.color = (i == selectedColonistIndex) ? Color.green : Color.white; // Highlight the selected colonist slot
             }
             else
             {
-                colonistSlotImages[i].enabled = false;
+                slotImage.enabled = false;
             }
         }
     }
 
 
-    public void UpdateUISlot(int index)
+    public void UpdateUISlot(int index, Colonist colonist)
     {
-        if (index >= numberOfSlots) return;
+        if (index < 0 || index >= numberOfSlots || slotList == null)
+        {
+            Debug.LogWarning("Invalid slot index or uninitialized slot list.");
+            return;
+        }
 
+        slotList[index] = colonist;  // Update the slot data
+
+        var updatedSlotImage = colonistSlotImages[index];
         if (slotList[index] != null)
         {
-            colonistSlotImages[index].sprite = fullSlotSprite;
+            updatedSlotImage.sprite = fullSlotSprite;
         }
         else
         {
-            colonistSlotImages[index].sprite = emptySlotSprite;
+            updatedSlotImage.sprite = emptySlotSprite;
         }
-
-        colonistSlotImages[index].color = (index == selectedColonistIndex) ? Color.green : Color.white; // Highlight the selected colonist slot
+        updatedSlotImage.color = (index == selectedColonistIndex) ? Color.green : Color.white; // Highlight the selected colonist slot
 
     }
 
@@ -98,24 +95,21 @@ public class PlayerInventory : MonoBehaviour
             Debug.Log("No room for Colonist"); // Notify player that there is no room for more colonists
             return;
         }
-        ++filledSlots;
-        
         if (slotList[selectedColonistIndex] == null)
         {
-            slotList[selectedColonistIndex] = colonist; // Add colonist data to stored colonist list at selected slot if empty
-            UpdateUISlot(selectedColonistIndex); // Update colonist slots UI to account for colonist collected
+            UpdateUISlot(selectedColonistIndex, colonist); // Update colonist slots UI to account for colonist collected
         }
         else
         {
-            int firstEmptySlotIndex = 0;
-            while (slotList[firstEmptySlotIndex] != null)
+            int firstEmptySlotIndex = slotList.FindIndex(slot => slot == null);
+            if (firstEmptySlotIndex == -1)
             {
-                ++firstEmptySlotIndex;
+                Debug.LogError("No empty slots available.");
+                return;
             }
-            slotList[firstEmptySlotIndex] = colonist; // Add colonist data to stored colonist list first empty slot
-            UpdateUISlot(firstEmptySlotIndex); // Update colonist slots UI to account for colonist collected
+            UpdateUISlot(firstEmptySlotIndex, colonist);
         }
-
+        ++filledSlots;
         colonist.gameObject.SetActive(false); // Deactivate colonist in the scene
         Debug.Log($"Colonist Collected. Slots remaining: {numberOfSlots - filledSlots}/{numberOfSlots}");
     }
@@ -129,9 +123,6 @@ public class PlayerInventory : MonoBehaviour
         }
 
         Colonist colonist = slotList[selectedColonistIndex];
-        slotList[selectedColonistIndex] = null;
-        --filledSlots;
-
         colonist.transform.position = playerTransform.position + playerTransform.forward; // Eject colonist near player (1 unit in front of)
         colonist.gameObject.SetActive(true); // Reactivate colonist in the scene
 
@@ -141,7 +132,8 @@ public class PlayerInventory : MonoBehaviour
             colonistRb.velocity = playerTransform.forward; // Apply velocity to have ejected colonist moving away from player
         }
 
-        UpdateUISlot(selectedColonistIndex); // Update colonist slots UI to account for colonist ejected
+        UpdateUISlot(selectedColonistIndex, null); // Update colonist slots UI to account for colonist ejected
+        --filledSlots;
         Debug.Log($"Colonist Ejected. Slots remaining: {numberOfSlots - filledSlots}/{numberOfSlots}");
     }
 }
