@@ -4,9 +4,10 @@ public enum BodyRegion
     Head,         // the head
     Neck,         // the neck
     Chest,        // the chest area
-    Pelvis,       // the pelvis area
-    LeftArm,      // the left arm
     RightArm,     // the right arm
-    LeftLeg,      // the left leg
-    RightLeg      // the right leg
+    LeftArm,      // the left arm
+    Midsection,   // the midsection area
+    Pelvis,       // the pelvis area
+    RightLeg,     // the right leg
+    LeftLeg      // the left leg
 }
