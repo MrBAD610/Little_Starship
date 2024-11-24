@@ -12,7 +12,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 04d733bc2b53ca746af54e78984e4feb, type: 3}
   m_Name: Pulmonary Barotrauma
   m_EditorClassIdentifier: 
-  emergencyName: Pulmonary Barotrauma (Lung Barotrauma)
+  emergencyName: Pulmonary Barotrauma
   presetAffectedRegions: 03000000
   randomAffectedRegions: 
   stabilizationTime: 10
+  desiredRandomRegions: 0

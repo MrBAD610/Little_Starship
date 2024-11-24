@@ -9,4 +9,5 @@ public class MedicalEmergency : ScriptableObject
     public List<BodyRegion> presetAffectedRegions; // list of preset regions affected by the medical emergency
     public List<BodyRegion> randomAffectedRegions; // list of possible regions affected by the medical emergency
     public float stabilizationTime; // Time to stabilize this emergency
+    public int desiredRandomRegions;
 }

@@ -13,6 +13,7 @@ MonoBehaviour:
   m_Name: Laceration
   m_EditorClassIdentifier: 
   emergencyName: Laceration
-  presetAffectedRegions: 
+  presetAffectedRegions: 03000000
   randomAffectedRegions: 010000000200000003000000040000000500000006000000070000000800000009000000
   stabilizationTime: 10
+  desiredRandomRegions: 1

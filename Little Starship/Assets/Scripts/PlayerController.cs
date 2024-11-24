@@ -87,8 +87,6 @@ public class PlayerController : MonoBehaviour
         grabInput = inputHandler.GrabInput;
         cycleInput = inputHandler.CycleInput;
         ejectInput = inputHandler.EjectInput;
-
-        Debug.Log($"Eject Input: {ejectInput}");
     }
 
     private void FixedUpdate()

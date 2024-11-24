@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class PlayerInventory : MonoBehaviour
 {
@@ -13,6 +14,7 @@ public class PlayerInventory : MonoBehaviour
     [SerializeField] public Image[] colonistSlotImages;
     [SerializeField] public Sprite fullSlotSprite;
     [SerializeField] public Sprite emptySlotSprite;
+    [SerializeField] private TextMeshProUGUI emergenciesText; // Text component to display emergencies
 
     private int selectedColonistIndex = 0; // Tracks the currently selected colonist
     private int filledSlots = 0;
@@ -27,6 +29,39 @@ public class PlayerInventory : MonoBehaviour
     private void Start()
     {
         InstantiateSlots(); // Instantiate slot list and slot UI
+        UpdateEmergencyUI(); // Update UI for the initially selected slot
+    }
+
+    public void UpdateEmergencyUI()
+    {
+        if (slotList == null || slotList[selectedColonistIndex] == null)
+        {
+            emergenciesText.text = "";
+            return;
+        }
+
+        Colonist selectedColonist = slotList[selectedColonistIndex];
+
+        // Format emergencies for display
+        string emergenciesInfo = $"<size=120%><b><color=red>Status: Attention Neccesary</color></b></size>\n";
+        foreach (var emergency in selectedColonist.emergencies)
+        {
+            emergenciesInfo += $"<b><color=orange>{emergency.emergencyName}</color></b>\n";
+
+            if (emergency.presetAffectedRegions != null && emergency.presetAffectedRegions.Count > 0)
+            {
+                foreach (var region in emergency.presetAffectedRegions)
+                {
+                    emergenciesInfo += $"- {region}\n";
+                }
+            }
+            else
+            {
+                emergenciesInfo += "No affected regions.\n";
+            }
+        }
+
+        emergenciesText.text = emergenciesInfo;
     }
 
     private void InstantiateSlots()
@@ -77,7 +112,9 @@ public class PlayerInventory : MonoBehaviour
         colonistSlotImages[selectedColonistIndex].color = Color.white; // Reset old slot color
         selectedColonistIndex = (selectedColonistIndex + 1) % numberOfSlots;
         colonistSlotImages[selectedColonistIndex].color = Color.green; // Highlight newly selected slot
-        Debug.Log($"Selected next colonist slot, slot {selectedColonistIndex}");
+        Debug.Log($"Selected next colonist slot, slot {selectedColonistIndex + 1}");
+
+        UpdateEmergencyUI(); // Update the UI for the new selection
     }
 
     public void SelectPreviousColonist()
@@ -85,7 +122,9 @@ public class PlayerInventory : MonoBehaviour
         colonistSlotImages[selectedColonistIndex].color = Color.white; // Reset old slot color
         selectedColonistIndex = (selectedColonistIndex - 1 + numberOfSlots) % numberOfSlots;
         colonistSlotImages[selectedColonistIndex].color = Color.green; // Highlight newly selected slot
-        Debug.Log($"Selected previous colonist slot, slot {selectedColonistIndex}");
+        Debug.Log($"Selected previous colonist slot, slot {selectedColonistIndex + 1}");
+
+        UpdateEmergencyUI(); // Update the UI for the new selection
     }
 
     public void CollectColonist(Colonist colonist)
@@ -112,13 +151,15 @@ public class PlayerInventory : MonoBehaviour
         ++filledSlots;
         colonist.gameObject.SetActive(false); // Deactivate colonist in the scene
         Debug.Log($"Colonist Collected. Slots remaining: {numberOfSlots - filledSlots}/{numberOfSlots}");
+
+        UpdateEmergencyUI(); // Update the UI for the new selection
     }
 
     public void EjectColonist()
     {
         if (slotList[selectedColonistIndex] == null)
         {
-            Debug.Log($"Slot {selectedColonistIndex} is empty, can't eject");
+            Debug.Log($"Slot {selectedColonistIndex + 1} is empty, can't eject");
             return;
         }
 
@@ -135,5 +176,7 @@ public class PlayerInventory : MonoBehaviour
         UpdateUISlot(selectedColonistIndex, null); // Update colonist slots UI to account for colonist ejected
         --filledSlots;
         Debug.Log($"Colonist Ejected. Slots remaining: {numberOfSlots - filledSlots}/{numberOfSlots}");
+
+        UpdateEmergencyUI(); // Update the UI for the new selection
     }
 }
