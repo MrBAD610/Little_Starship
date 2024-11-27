@@ -16,6 +16,9 @@ public class PlayerController : MonoBehaviour
     [Header("Colonist Slot Cycling Settings")]
     [SerializeField] private float cycleSlotCooldown = 0.2f;
 
+    [Header("Medical Emergency Scroll Settings")]
+    [SerializeField] private float scrollCooldown = 0.2f;
+
     [Header("Camera Settings")]
     [SerializeField] private float cameraOffset = 5.0f;
 
@@ -33,9 +36,12 @@ public class PlayerController : MonoBehaviour
     private float verticalInput;
     public bool grabInput;
     private float cycleInput;
+    private float scrollInput;
+    private bool selectInput;
     private bool ejectInput;
 
     private float timeOfLastCycle = 0f;
+    private float timeOfLastScroll = 0f;
 
     private bool hasEjected = false; // Prevent multiple ejections on a single press
 
@@ -86,6 +92,8 @@ public class PlayerController : MonoBehaviour
         curScreenPos = inputHandler.LookInput;
         grabInput = inputHandler.GrabInput;
         cycleInput = inputHandler.CycleInput;
+        scrollInput = inputHandler.ScrollInput;
+        selectInput = inputHandler.SelectInput;
         ejectInput = inputHandler.EjectInput;
     }
 
@@ -114,6 +122,25 @@ public class PlayerController : MonoBehaviour
                     playerInventory.SelectPreviousColonist();
                     timeOfLastCycle = Time.time;
                 }
+            }
+
+            if (Time.time - timeOfLastScroll > scrollCooldown)
+            {
+                if (scrollInput > 0f) // scroll up to next medical emergency/body region
+                {
+                    timeOfLastCycle = Time.time;
+                    Debug.Log($"Scrolled up at {timeOfLastCycle}");
+                }
+                else if (scrollInput < 0f) // scroll down to next medical emergency/body region
+                {
+                    timeOfLastCycle = Time.time;
+                    Debug.Log($"Scrolled down at {timeOfLastCycle}");
+                }
+            }
+
+            if (selectInput)
+            {
+                Debug.Log("Has hit select button");
             }
 
             if (ejectInput && !hasEjected)
