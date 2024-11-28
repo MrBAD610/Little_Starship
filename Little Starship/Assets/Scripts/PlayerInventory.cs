@@ -43,26 +43,6 @@ public class PlayerInventory : MonoBehaviour
         }
         Colonist selectedColonist = slotList[selectedColonistIndex];
         emergencyUIHandler.DisplayEmergenciesWithRegions(selectedColonist.emergencies); // Format emergencies for display
-
-        //string emergenciesInfo = $"<size=120%><b><color=red>Status: Attention Neccesary</color></b></size>\n";
-        //foreach (var emergency in selectedColonist.emergencies)
-        //{
-        //    //emergenciesInfo += $"<b><color=orange>{emergency.emergencyName}</color></b>\n";
-
-        //    if (emergency.presetAffectedRegions != null && emergency.presetAffectedRegions.Count > 0)
-        //    {
-        //        foreach (var region in emergency.presetAffectedRegions)
-        //        {
-        //            //emergenciesInfo += $"- {region}\n";
-        //        }
-        //    }
-        //    else
-        //    {
-        //        //emergenciesInfo += "No affected regions.\n";
-        //    }
-        //}
-
-        //emergenciesText.text = emergenciesInfo;
     }
 
     public void SelectEmergency()
@@ -70,8 +50,6 @@ public class PlayerInventory : MonoBehaviour
         var emergencies = slotList[selectedColonistIndex].emergencies;
         MedicalEmergency selectedEmergency = emergencies[emergencyUIHandler.selectedEmergencyIndex];
         emergencyUIHandler.ExpandRegions(emergencyUIHandler.selectedEmergencyIndex, selectedEmergency.presetAffectedRegions);
-
-        //emergencyUIHandler.DisplayRegions(selectedEmergency.presetAffectedRegions);
     }
 
     //public void NavigateEmergencies(int direction)
