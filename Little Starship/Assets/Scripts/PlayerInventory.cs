@@ -14,10 +14,6 @@ public class PlayerInventory : MonoBehaviour
     [SerializeField] public Image[] colonistSlotImages;
     [SerializeField] public Sprite fullSlotSprite;
     [SerializeField] public Sprite emptySlotSprite;
-    [SerializeField] private TextMeshProUGUI emergenciesText; // Text component to display emergencies
-
-    [Header("Medical Emergency Scroll Settings")]
-    [SerializeField] private float scrollCooldown = 0.2f;
 
     private int selectedColonistIndex = 0; // Tracks the currently selected colonist
     private int filledSlots = 0;
@@ -67,6 +63,15 @@ public class PlayerInventory : MonoBehaviour
         //}
 
         //emergenciesText.text = emergenciesInfo;
+    }
+
+    public void SelectEmergency()
+    {
+        var emergencies = slotList[selectedColonistIndex].emergencies;
+        MedicalEmergency selectedEmergency = emergencies[emergencyUIHandler.selectedEmergencyIndex];
+        emergencyUIHandler.ExpandRegions(emergencyUIHandler.selectedEmergencyIndex, selectedEmergency.presetAffectedRegions);
+
+        //emergencyUIHandler.DisplayRegions(selectedEmergency.presetAffectedRegions);
     }
 
     //public void NavigateEmergencies(int direction)

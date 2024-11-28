@@ -72,13 +72,6 @@ public class PlayerInputHandler : MonoBehaviour
             Instance = this;
             DontDestroyOnLoad(gameObject);
         }
-        //else
-        //{
-        //    Destroy(gameObject);
-        //}
-
-
-        //Camera = Camera.main;
 
         moveAction = playerControls.FindActionMap(actionMapName).FindAction(move);
         lookAction = playerControls.FindActionMap(actionMapName).FindAction(look);

@@ -12,7 +12,7 @@ public class EmergencyUIHandler : MonoBehaviour
     [SerializeField] private float regionSpacing = 10f;  // Spacing for regions when expanded
 
     private List<GameObject> listItems = new List<GameObject>();
-    private int selectedEmergencyIndex = 0;
+    public int selectedEmergencyIndex = 0;
     private int selectedRegionIndex = -1; // -1 means no region is selected
 
     public void DisplayEmergenciesWithRegions(List<MedicalEmergency> emergencies)
