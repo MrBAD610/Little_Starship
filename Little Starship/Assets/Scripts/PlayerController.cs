@@ -17,6 +17,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float cycleSlotCooldown = 0.2f;
 
     [Header("Medical Emergency Scroll Settings")]
+    [SerializeField] private EmergencyUIHandler emergencyUIHandler;
     [SerializeField] private float scrollCooldown = 0.2f;
 
     [Header("Camera Settings")]
@@ -75,6 +76,7 @@ public class PlayerController : MonoBehaviour
         playerRb = GetComponent<Rigidbody>();
         playerInventory = GetComponent<PlayerInventory>();
         playerHealth = GetComponent<PlayerHealth>();
+        emergencyUIHandler = GetComponent<EmergencyUIHandler>();
     }
     
     //Start is called before the first frame update
@@ -124,24 +126,29 @@ public class PlayerController : MonoBehaviour
                 }
             }
 
-            if (Time.time - timeOfLastScroll > scrollCooldown)
-            {
-                if (scrollInput > 0f) // scroll up to next medical emergency/body region
-                {
-                    timeOfLastCycle = Time.time;
-                    Debug.Log($"Scrolled up at {timeOfLastCycle}");
-                }
-                else if (scrollInput < 0f) // scroll down to next medical emergency/body region
-                {
-                    timeOfLastCycle = Time.time;
-                    Debug.Log($"Scrolled down at {timeOfLastCycle}");
-                }
-            }
+            //if (Time.time - timeOfLastScroll > scrollCooldown)
+            //{
+            //    if (scrollInput > 0f) // scroll up to next medical emergency/body region
+            //    {
+            //        //NavigateRegions(1); // Navigate up
+            //        timeOfLastCycle = Time.time;
+            //        Debug.Log($"Scrolled up at {timeOfLastCycle}");
+            //    }
+            //    else if (scrollInput < 0f) // scroll down to next medical emergency/body region
+            //    {
+            //        //NavigateRegions(-1); // Navigate down
+            //        timeOfLastCycle = Time.time;
+            //        Debug.Log($"Scrolled down at {timeOfLastCycle}");
+            //    }
+            //}
 
-            if (selectInput)
-            {
-                Debug.Log("Has hit select button");
-            }
+            //if (selectInput)
+            //{
+            //    //SelectEmergency(); // Select or expand/collapse
+            //    Debug.Log("Has hit select button");
+            //}
+
+            HandleScrollInput();
 
             if (ejectInput && !hasEjected)
             {
@@ -182,6 +189,67 @@ public class PlayerController : MonoBehaviour
             playerTransform.position = desiredPosition;
         }
     }
+
+    private void HandleScrollInput()
+    {
+        if (scrollInput != 0)
+        {
+            emergencyUIHandler.Scroll((int)Mathf.Sign(scrollInput));
+        }
+
+        if (selectInput)
+        {
+            if (emergencyUIHandler.GetSelectedRegionIndex() == -1)
+            {
+                var selectedEmergency = GetSelectedEmergency();
+                emergencyUIHandler.ExpandRegions(emergencyUIHandler.GetSelectedRegionIndex(), selectedEmergency.presetAffectedRegions);
+            }
+            else
+            {
+                // Handle region selection
+                Debug.Log("Region selected!");
+            }
+        }
+    }
+
+    private MedicalEmergency GetSelectedEmergency()
+    {
+        // Ensure the PlayerInventory is valid
+        if (playerInventory == null)
+        {
+            Debug.LogWarning("PlayerInventory is not assigned.");
+            return null;
+        }
+
+        // Get the currently selected colonist index
+        int selectedColonistIndex = playerInventory.GetSelectedColonistIndex();
+
+        // Validate the colonist index
+        if (selectedColonistIndex < 0 || selectedColonistIndex >= playerInventory.slotList.Count)
+        {
+            Debug.LogWarning("No colonist is selected or index is out of range.");
+            return null;
+        }
+
+        // Get the selected colonist
+        var colonist = playerInventory.slotList[selectedColonistIndex];
+        if (colonist == null)
+        {
+            Debug.LogWarning("Selected colonist slot is empty.");
+            return null;
+        }
+
+        // Validate the emergency index
+        if (emergencyUIHandler.GetSelectedEmergencIndex() < 0 || emergencyUIHandler.GetSelectedEmergencIndex() >= colonist.emergencies.Count)
+        {
+            Debug.LogWarning("Selected emergency index is out of range.");
+            return null;
+        }
+
+        // Return the currently selected emergency
+        return colonist.emergencies[emergencyUIHandler.GetSelectedEmergencIndex()];
+    }
+
 
     void Eject()
     {

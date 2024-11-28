@@ -16,52 +16,82 @@ public class PlayerInventory : MonoBehaviour
     [SerializeField] public Sprite emptySlotSprite;
     [SerializeField] private TextMeshProUGUI emergenciesText; // Text component to display emergencies
 
+    [Header("Medical Emergency Scroll Settings")]
+    //[SerializeField] private EmergencyUIHandler emergencyUIHandler;
+    [SerializeField] private float scrollCooldown = 0.2f;
+
     private int selectedColonistIndex = 0; // Tracks the currently selected colonist
     private int filledSlots = 0;
+    private int selectedEmergencyIndex = 0;  // Tracks the currently selected emergency
+    private int selectedRegionIndex = 0;  // Tracks the currently selected region
+
+    private EmergencyUIHandler emergencyUIHandler;
 
     private Transform playerTransform;
 
     private void Awake()
     {
         playerTransform = transform;
+        emergencyUIHandler = GetComponent<EmergencyUIHandler>();
     }
 
     private void Start()
     {
         InstantiateSlots(); // Instantiate slot list and slot UI
-        UpdateEmergencyUI(); // Update UI for the initially selected slot
+        //UpdateEmergencyUI(); // Update UI for the initially selected slot
     }
 
-    public void UpdateEmergencyUI()
+    //public void UpdateEmergencyUI()
+    //{
+    //    if (slotList == null || slotList[selectedColonistIndex] == null)
+    //    {
+    //        emergenciesText.text = "";
+    //        return;
+    //    }
+
+    //    Colonist selectedColonist = slotList[selectedColonistIndex];
+
+    //    // Format emergencies for display
+    //    string emergenciesInfo = $"<size=120%><b><color=red>Status: Attention Neccesary</color></b></size>\n";
+    //    foreach (var emergency in selectedColonist.emergencies)
+    //    {
+    //        emergenciesInfo += $"<b><color=orange>{emergency.emergencyName}</color></b>\n";
+
+    //        if (emergency.presetAffectedRegions != null && emergency.presetAffectedRegions.Count > 0)
+    //        {
+    //            foreach (var region in emergency.presetAffectedRegions)
+    //            {
+    //                emergenciesInfo += $"- {region}\n";
+    //            }
+    //        }
+    //        else
+    //        {
+    //            emergenciesInfo += "No affected regions.\n";
+    //        }
+    //    }
+
+    //    emergenciesText.text = emergenciesInfo;
+    //}
+
+    public void NavigateEmergencies(int direction)
     {
-        if (slotList == null || slotList[selectedColonistIndex] == null)
-        {
-            emergenciesText.text = "";
-            return;
-        }
+        var emergencies = slotList[selectedColonistIndex].emergencies;
+        int newIndex = (selectedEmergencyIndex + direction + emergencies.Count) % emergencies.Count;
+        emergencyUIHandler.HighlightEmergency(newIndex);
+    }
 
-        Colonist selectedColonist = slotList[selectedColonistIndex];
+    public void SelectEmergency()
+    {
+        var emergencies = slotList[selectedColonistIndex].emergencies;
+        var selectedEmergency = emergencies[selectedEmergencyIndex];
+        //emergencyUIHandler.DisplayRegions(selectedEmergency.presetAffectedRegions);
+    }
 
-        // Format emergencies for display
-        string emergenciesInfo = $"<size=120%><b><color=red>Status: Attention Neccesary</color></b></size>\n";
-        foreach (var emergency in selectedColonist.emergencies)
-        {
-            emergenciesInfo += $"<b><color=orange>{emergency.emergencyName}</color></b>\n";
-
-            if (emergency.presetAffectedRegions != null && emergency.presetAffectedRegions.Count > 0)
-            {
-                foreach (var region in emergency.presetAffectedRegions)
-                {
-                    emergenciesInfo += $"- {region}\n";
-                }
-            }
-            else
-            {
-                emergenciesInfo += "No affected regions.\n";
-            }
-        }
-
-        emergenciesText.text = emergenciesInfo;
+    public void NavigateRegions(int direction)
+    {
+        var regions = slotList[selectedColonistIndex].emergencies[selectedEmergencyIndex].presetAffectedRegions;
+        int newIndex = (selectedRegionIndex + direction + regions.Count) % regions.Count;
+        emergencyUIHandler.HighlightRegion(newIndex);
     }
 
     private void InstantiateSlots()
@@ -114,7 +144,7 @@ public class PlayerInventory : MonoBehaviour
         colonistSlotImages[selectedColonistIndex].color = Color.green; // Highlight newly selected slot
         Debug.Log($"Selected next colonist slot, slot {selectedColonistIndex + 1}");
 
-        UpdateEmergencyUI(); // Update the UI for the new selection
+        //UpdateEmergencyUI(); // Update the UI for the new selection
     }
 
     public void SelectPreviousColonist()
@@ -124,7 +154,7 @@ public class PlayerInventory : MonoBehaviour
         colonistSlotImages[selectedColonistIndex].color = Color.green; // Highlight newly selected slot
         Debug.Log($"Selected previous colonist slot, slot {selectedColonistIndex + 1}");
 
-        UpdateEmergencyUI(); // Update the UI for the new selection
+        //UpdateEmergencyUI(); // Update the UI for the new selection
     }
 
     public void CollectColonist(Colonist colonist)
@@ -152,7 +182,7 @@ public class PlayerInventory : MonoBehaviour
         colonist.gameObject.SetActive(false); // Deactivate colonist in the scene
         Debug.Log($"Colonist Collected. Slots remaining: {numberOfSlots - filledSlots}/{numberOfSlots}");
 
-        UpdateEmergencyUI(); // Update the UI for the new selection
+        //UpdateEmergencyUI(); // Update the UI for the new selection
     }
 
     public void EjectColonist()
@@ -177,6 +207,11 @@ public class PlayerInventory : MonoBehaviour
         --filledSlots;
         Debug.Log($"Colonist Ejected. Slots remaining: {numberOfSlots - filledSlots}/{numberOfSlots}");
 
-        UpdateEmergencyUI(); // Update the UI for the new selection
+        //UpdateEmergencyUI(); // Update the UI for the new selection
+    }
+
+    public int GetSelectedColonistIndex()
+    {
+        return selectedColonistIndex;
     }
 }
