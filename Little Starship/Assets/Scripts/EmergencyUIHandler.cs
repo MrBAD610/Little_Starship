@@ -129,6 +129,11 @@ public class EmergencyUIHandler : MonoBehaviour
         }
     }
 
+    public void ClearDisplay()
+    {
+        ClearList();
+    }
+
     private void ResetHighlights()
     {
         foreach (var item in listItems)

@@ -17,7 +17,6 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float cycleSlotCooldown = 0.2f;
 
     [Header("Medical Emergency Scroll Settings")]
-    [SerializeField] private EmergencyUIHandler emergencyUIHandler;
     [SerializeField] private float scrollCooldown = 0.2f;
 
     [Header("Camera Settings")]
@@ -28,6 +27,7 @@ public class PlayerController : MonoBehaviour
     private PlayerInputHandler inputHandler;
     private PlayerInventory playerInventory;
     private PlayerHealth playerHealth;
+    private EmergencyUIHandler emergencyUIHandler;
 
     public Camera mainCamera;
 
@@ -130,13 +130,13 @@ public class PlayerController : MonoBehaviour
             {
                 if (scrollInput > 0f) // scroll up to next medical emergency/body region
                 {
-                    //NavigateRegions(1); // Navigate up
+                    emergencyUIHandler.Scroll(-1);
                     timeOfLastCycle = Time.time;
                     Debug.Log($"Scrolled up at {timeOfLastCycle}");
                 }
                 else if (scrollInput < 0f) // scroll down to next medical emergency/body region
                 {
-                    //NavigateRegions(-1); // Navigate down
+                    emergencyUIHandler.Scroll(1);
                     timeOfLastCycle = Time.time;
                     Debug.Log($"Scrolled down at {timeOfLastCycle}");
                 }
@@ -145,6 +145,9 @@ public class PlayerController : MonoBehaviour
             if (selectInput)
             {
                 //SelectEmergency(); // Select or expand/collapse
+
+                //playerInventory.SelectEmergency();
+
                 Debug.Log("Has hit select button");
             }
 
@@ -192,9 +195,6 @@ public class PlayerController : MonoBehaviour
     {
         if (playerInventory.slotList.Count > 0)
         {
-            //var colonistToEject = playerInventory.storedColonists[0]; // Drop the first colonist
-            //playerInventory.EjectColonist(colonistToEject);
-
             playerInventory.EjectColonist();
         }
         else
