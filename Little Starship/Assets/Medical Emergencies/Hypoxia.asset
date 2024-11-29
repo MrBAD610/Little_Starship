@@ -16,3 +16,4 @@ MonoBehaviour:
   presetAffectedRegions: 00000000
   randomAffectedRegions: 
   stabilizationTime: 10
+  desiredRandomRegions: 0

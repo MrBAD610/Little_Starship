@@ -5,6 +5,7 @@ using UnityEngine;
 public class Colonist : MonoBehaviour
 {
     public List<MedicalEmergency> emergencies;
+    public List<List<BodyRegion>> colonistRegions = new List<List<BodyRegion>>();
     public Rigidbody ColonistRigidbody { get; private set; }
 
     private void Awake()
@@ -15,11 +16,17 @@ public class Colonist : MonoBehaviour
 
     private void InitializeRandomRegions()
     {
+        int regionListIndex = 0;
+
         foreach (var emergency in emergencies)
         {
+            colonistRegions.Add(new List<BodyRegion>()); // Initialize new list of body regions
+
             // Skip if the random regions are already chosen
-            if (emergency.presetAffectedRegions != null && emergency.presetAffectedRegions.Count > 0)
-                continue;
+            if (emergency.presetAffectedRegions != null && emergency.presetAffectedRegions.Count > 0) 
+            {
+                colonistRegions[regionListIndex] = emergency.presetAffectedRegions;
+            }
 
             if (emergency.randomAffectedRegions == null || emergency.randomAffectedRegions.Count == 0)
                 continue;
@@ -34,11 +41,15 @@ public class Colonist : MonoBehaviour
             }
 
             // Add the chosen regions to the emergency's preset list
-            emergency.presetAffectedRegions = new List<BodyRegion>();
+            //emergency.presetAffectedRegions = new List<BodyRegion>();
+
             foreach (int index in selectedIndices)
             {
-                emergency.presetAffectedRegions.Add(emergency.randomAffectedRegions[index]);
+                //emergency.presetAffectedRegions.Add(emergency.randomAffectedRegions[index]);
+                colonistRegions[regionListIndex].Add(emergency.randomAffectedRegions[index]);
             }
+
+            ++regionListIndex;
         }
 
         Debug.Log($"Random regions initialized for Colonist: {gameObject.name}");

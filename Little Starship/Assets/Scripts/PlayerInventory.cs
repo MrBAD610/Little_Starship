@@ -42,14 +42,12 @@ public class PlayerInventory : MonoBehaviour
             return;
         }
         Colonist selectedColonist = slotList[selectedColonistIndex];
-        emergencyUIHandler.DisplayEmergenciesWithRegions(selectedColonist.emergencies); // Format emergencies for display
+        emergencyUIHandler.DisplayEmergenciesWithRegions(selectedColonist.emergencies, selectedColonist.colonistRegions); // Format emergencies for display
     }
 
     public void SelectEmergency()
     {
-        var emergencies = slotList[selectedColonistIndex].emergencies;
-        MedicalEmergency selectedEmergency = emergencies[emergencyUIHandler.selectedEmergencyIndex];
-        emergencyUIHandler.ExpandRegions(emergencyUIHandler.selectedEmergencyIndex, selectedEmergency.presetAffectedRegions);
+        emergencyUIHandler.ExpandRegions();
     }
 
     //public void NavigateEmergencies(int direction)

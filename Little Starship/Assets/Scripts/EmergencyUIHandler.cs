@@ -12,91 +12,140 @@ public class EmergencyUIHandler : MonoBehaviour
     [SerializeField] private float regionSpacing = 10f;  // Spacing for regions when expanded
 
     private List<GameObject> listItems = new List<GameObject>();
+    private List<int> placeholderIndexs = new List<int>();
+    private List<MedicalEmergency> allEmergencies = new List<MedicalEmergency>();
+    private List<List<BodyRegion>> allRegions = new List<List<BodyRegion>>();
     public int selectedEmergencyIndex = 0;
     private int selectedRegionIndex = -1; // -1 means no region is selected
+    private int currentPlaceholder = 0;
 
-    public void DisplayEmergenciesWithRegions(List<MedicalEmergency> emergencies)
+    public void DisplayEmergenciesWithRegions(List<MedicalEmergency> emergencies, List<List<BodyRegion>> Regions)
     {
         ClearList(); // Ensure the list is empty before repopulating.
 
-        for (int i = 0; i < emergencies.Count; i++)
+        selectedEmergencyIndex = 0;
+        selectedRegionIndex = -1;
+        allEmergencies = emergencies;
+        allRegions = Regions;
+
+        for (int i = 0; i < allEmergencies.Count; i++)
         {
             // Create Emergency Entry
             var emergencyItem = Instantiate(emergencyPrefab, listContainer);
             var emergencyText = emergencyItem.GetComponentInChildren<TextMeshProUGUI>();
-            emergencyText.text = emergencies[i].emergencyName;
+            emergencyText.text = allEmergencies[i].emergencyName;
             listItems.Add(emergencyItem);
 
             // Create Placeholder for Regions
-            var regionPlaceholder = new GameObject($"RegionsPlaceholder_{i}", typeof(RectTransform));
+            GameObject regionPlaceholder = new GameObject($"RegionsPlaceholder_{i}", typeof(RectTransform));
             regionPlaceholder.transform.SetParent(listContainer);
+            // Add VerticalLayoutGroup to Placeholder
+            regionPlaceholder.AddComponent<VerticalLayoutGroup>();
 
-            // Add LayoutElement to Placeholder
-            var layoutElement = regionPlaceholder.AddComponent<LayoutElement>();
-            layoutElement.preferredHeight = 0; // Default height
-
-            listItems.Add(regionPlaceholder); // Add placeholder to listItems.
-
-            Debug.Log($"Created placeholder at index {listItems.Count - 1} with LayoutElement.");
+            for (int j = 0; j < allRegions[i].Count; j++)
+            {
+                // Create region and parent it under the placeholder's parent.
+                GameObject regionItem = Instantiate(regionPrefab, regionPlaceholder.transform);
+                var regionText = regionItem.GetComponentInChildren<TextMeshProUGUI>();
+                regionText.text = allRegions[i][j].ToString();
+                //regionItem.SetActive(false);
+            }
+            
+            listItems.Add(regionPlaceholder);
+            placeholderIndexs.Add(listItems.Count - 1);
+            regionPlaceholder.SetActive(false);
         }
 
+        //for (int i = 0; i < emergencies.Count; i++)
+        //{
+        //    // Create Emergency Entry
+        //    var emergencyItem = Instantiate(emergencyPrefab, listContainer);
+        //    var emergencyText = emergencyItem.GetComponentInChildren<TextMeshProUGUI>();
+        //    emergencyText.text = emergencies[i].emergencyName;
+        //    listItems.Add(emergencyItem);
+
+        //    for (int j = 0; j < emergencies[i].presetAffectedRegions.Count; j++)
+        //    {// Create Placeholder for Regions
+        //        var regionPlaceholder = new GameObject($"RegionsPlaceholder_{i}_{j}", typeof(RectTransform));
+        //        regionPlaceholder.transform.SetParent(listContainer);
+
+        //        // Add LayoutElement to Placeholder
+        //        var layoutElement = regionPlaceholder.AddComponent<LayoutElement>();
+        //        layoutElement.preferredHeight = 0; // Default height
+
+        //        listItems.Add(regionPlaceholder); // Add placeholder to listItems.
+
+        //        Debug.Log($"Created placeholder at index {listItems.Count - 1} with LayoutElement.");
+        //    }
+        //}
+
+        HighlightEmergency(selectedEmergencyIndex);
         DebugListStructure(); // Log the structure after initialization.
     }
 
 
-    public void ExpandRegions(int emergencyIndex, List<BodyRegion> regions)
+    public void ExpandRegions()
     {
-        CollapseRegions(); // Clear previously expanded regions.
-
-        int placeholderIndex = emergencyIndex * 2 + 1; // Calculate placeholder position.
-        if (placeholderIndex < 0 || placeholderIndex >= listItems.Count)
+        if (currentPlaceholder > 0)
         {
-            Debug.LogError($"ExpandRegions failed: placeholderIndex {placeholderIndex} out of bounds.");
-            return;
+            listItems[currentPlaceholder].SetActive(false);
         }
 
-        var placeholder = listItems[placeholderIndex];
-        if (placeholder == null)
-        {
-            Debug.LogError($"ExpandRegions failed: Placeholder at index {placeholderIndex} is null.");
-            return;
-        }
+        listItems[placeholderIndexs[selectedEmergencyIndex]].SetActive(true);
+        currentPlaceholder = placeholderIndexs[selectedEmergencyIndex];
 
-        Debug.Log($"Expanding regions for emergency at index {emergencyIndex}, placeholderIndex {placeholderIndex}.");
+        //CollapseRegions(); // Clear previously expanded regions.
 
-        for (int i = 0; i < regions.Count; i++)
-        {
-            // Create region and parent it under the placeholder's parent.
-            var regionItem = Instantiate(regionPrefab, placeholder.transform.parent);
-            var regionText = regionItem.GetComponentInChildren<TextMeshProUGUI>();
-            regionText.text = regions[i].ToString();
+        //int emergencyIndex = selectedEmergencyIndex;
+        //int placeholderIndex = emergencyIndex + 1; // Calculate placeholder position.
+        //if (placeholderIndex < 0 || placeholderIndex >= listItems.Count)
+        //{
+        //    Debug.LogError($"ExpandRegions failed: placeholderIndex {placeholderIndex} out of bounds.");
+        //    return;
+        //}
 
-            // Insert region directly after the placeholder in `listItems`.
-            listItems.Insert(placeholderIndex + 1 + i, regionItem);
-        }
+        //var placeholder = listItems[placeholderIndex];
+        //if (placeholder == null)
+        //{
+        //    Debug.LogError($"ExpandRegions failed: Placeholder at index {placeholderIndex} is null.");
+        //    return;
+        //}
 
-        AdjustSpacing(placeholderIndex, regions.Count); // Adjust spacing for regions.
-        HighlightRegion(0); // Highlight the first region.
-        DebugListStructure(); // Log the updated list structure.
+        //Debug.Log($"Expanding regions for emergency at index {emergencyIndex}, placeholderIndex {placeholderIndex}.");
+
+        //for (int i = 0; i < allRegions[emergencyIndex].Count; i++)
+        //{
+        //    // Create region and parent it under the placeholder's parent.
+        //    var regionItem = Instantiate(regionPrefab, placeholder.transform.parent);
+        //    var regionText = regionItem.GetComponentInChildren<TextMeshProUGUI>();
+        //    regionText.text = allRegions[emergencyIndex][i].ToString();
+
+        //    // Insert region directly after the placeholder in `listItems`.
+        //    listItems.Insert(placeholderIndex + 1 + i, regionItem);
+        //}
+
+        //AdjustSpacing(placeholderIndex, allRegions[emergencyIndex].Count); // Adjust spacing for regions.
+        //HighlightRegion(0); // Highlight the first region.
+        //DebugListStructure(); // Log the updated list structure.
     }
 
 
 
-    public void CollapseRegions()
-    {
-        for (int i = listItems.Count - 1; i >= 0; i--)
-        {
-            if (listItems[i].name.Contains("Region"))
-            {
-                Destroy(listItems[i]);
-                listItems.RemoveAt(i);
-            }
-        }
+    //public void CollapseRegions()
+    //{
+    //    for (int i = listItems.Count - 1; i >= 0; i--)
+    //    {
+    //        if (listItems[i].name.Contains("Region"))
+    //        {
+    //            Destroy(listItems[i]);
+    //            listItems.RemoveAt(i);
+    //        }
+    //    }
 
-        ResetSpacing();
+    //    ResetSpacing();
 
-        DebugListStructure();
-    }
+    //    DebugListStructure();
+    //}
 
     public void HighlightEmergency(int index)
     {
@@ -127,7 +176,13 @@ public class EmergencyUIHandler : MonoBehaviour
     {
         if (selectedRegionIndex == -1) // Scrolling through emergencies
         {
-            int newEmergencyIndex = selectedEmergencyIndex + direction;
+            if (allEmergencies.Count == 0)
+            {
+                return;
+            }
+            
+            
+            int newEmergencyIndex = (selectedEmergencyIndex + direction + allEmergencies.Count) % allEmergencies.Count;
 
             if (newEmergencyIndex < 0 || newEmergencyIndex * 2 >= listItems.Count)
             {
@@ -190,47 +245,47 @@ public class EmergencyUIHandler : MonoBehaviour
         }
     }
 
-    private void AdjustSpacing(int placeholderIndex, int regionCount)
-    {
-        if (placeholderIndex < 0 || placeholderIndex >= listItems.Count)
-        {
-            Debug.LogError($"AdjustSpacing failed: placeholderIndex {placeholderIndex} out of bounds.");
-            return;
-        }
+    //private void AdjustSpacing(int placeholderIndex, int regionCount)
+    //{
+    //    if (placeholderIndex < 0 || placeholderIndex >= listItems.Count)
+    //    {
+    //        Debug.LogError($"AdjustSpacing failed: placeholderIndex {placeholderIndex} out of bounds.");
+    //        return;
+    //    }
 
-        var placeholder = listItems[placeholderIndex];
-        if (placeholder == null)
-        {
-            Debug.LogError($"AdjustSpacing failed: Placeholder at index {placeholderIndex} is null.");
-            return;
-        }
+    //    var placeholder = listItems[placeholderIndex];
+    //    if (placeholder == null)
+    //    {
+    //        Debug.LogError($"AdjustSpacing failed: Placeholder at index {placeholderIndex} is null.");
+    //        return;
+    //    }
 
-        var layoutElement = placeholder.GetComponent<LayoutElement>();
-        if (layoutElement == null)
-        {
-            Debug.LogError($"AdjustSpacing failed: No LayoutElement found on placeholder at index {placeholderIndex}. Adding one dynamically.");
-            layoutElement = placeholder.AddComponent<LayoutElement>();
-        }
+    //    var layoutElement = placeholder.GetComponent<LayoutElement>();
+    //    if (layoutElement == null)
+    //    {
+    //        Debug.LogError($"AdjustSpacing failed: No LayoutElement found on placeholder at index {placeholderIndex}. Adding one dynamically.");
+    //        layoutElement = placeholder.AddComponent<LayoutElement>();
+    //    }
 
-        layoutElement.preferredHeight = regionSpacing * regionCount; // Adjust height for regions.
-        Debug.Log($"Adjusted spacing for placeholder at index {placeholderIndex} to {layoutElement.preferredHeight}.");
-    }
+    //    layoutElement.preferredHeight = regionSpacing * regionCount; // Adjust height for regions.
+    //    Debug.Log($"Adjusted spacing for placeholder at index {placeholderIndex} to {layoutElement.preferredHeight}.");
+    //}
 
 
-    private void ResetSpacing()
-    {
-        foreach (var item in listItems)
-        {
-            if (item.name.Contains("RegionsPlaceholder"))
-            {
-                var layout = item.GetComponent<LayoutElement>();
-                if (layout != null)
-                {
-                    layout.preferredHeight = 0;
-                }
-            }
-        }
-    }
+    //private void ResetSpacing()
+    //{
+    //    foreach (var item in listItems)
+    //    {
+    //        if (item.name.Contains("RegionsPlaceholder"))
+    //        {
+    //            var layout = item.GetComponent<LayoutElement>();
+    //            if (layout != null)
+    //            {
+    //                layout.preferredHeight = 0;
+    //            }
+    //        }
+    //    }
+    //}
 
     private void ClearList()
     {
@@ -239,6 +294,8 @@ public class EmergencyUIHandler : MonoBehaviour
             Destroy(item);
         }
         listItems.Clear();
+        placeholderIndexs.Clear();
+        currentPlaceholder = 0;
     }
 
     private void DebugListStructure()
