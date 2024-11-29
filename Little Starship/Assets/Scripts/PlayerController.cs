@@ -146,7 +146,7 @@ public class PlayerController : MonoBehaviour
             {
                 //SelectEmergency(); // Select or expand/collapse
 
-                playerInventory.SelectEmergency();
+                emergencyUIHandler.ExpandRegions();
                 Debug.Log("Has hit select button");
             }
 

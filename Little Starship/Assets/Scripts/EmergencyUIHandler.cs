@@ -8,6 +8,7 @@ public class EmergencyUIHandler : MonoBehaviour
     [Header("Prefabs and Containers")]
     [SerializeField] private GameObject emergencyPrefab; // Prefab for emergencies
     [SerializeField] private GameObject regionPrefab;    // Prefab for regions
+    [SerializeField] private GameObject regionGroupPrefab; // Prefab for region vertical groups
     [SerializeField] private Transform listContainer;    // Parent container for emergencies and regions
     [SerializeField] private float regionSpacing = 10f;  // Spacing for regions when expanded
 
@@ -37,10 +38,14 @@ public class EmergencyUIHandler : MonoBehaviour
             listItems.Add(emergencyItem);
 
             // Create Placeholder for Regions
-            GameObject regionPlaceholder = new GameObject($"RegionsPlaceholder_{i}", typeof(RectTransform));
-            regionPlaceholder.transform.SetParent(listContainer);
+            //GameObject regionPlaceholder = new GameObject($"RegionsPlaceholder_{i}", typeof(RectTransform));
+            //regionPlaceholder.transform.SetParent(listContainer);
             // Add VerticalLayoutGroup to Placeholder
-            regionPlaceholder.AddComponent<VerticalLayoutGroup>();
+            //regionPlaceholder.AddComponent<VerticalLayoutGroup>();
+
+            GameObject regionPlaceholder = Instantiate(regionGroupPrefab, listContainer);
+            RectTransform rectTrans = regionPlaceholder.GetComponent<RectTransform>();
+            rectTrans.sizeDelta = new Vector2(100, 100 * allRegions[i].Count);
 
             for (int j = 0; j < allRegions[i].Count; j++)
             {
@@ -55,29 +60,6 @@ public class EmergencyUIHandler : MonoBehaviour
             placeholderIndexs.Add(listItems.Count - 1);
             regionPlaceholder.SetActive(false);
         }
-
-        //for (int i = 0; i < emergencies.Count; i++)
-        //{
-        //    // Create Emergency Entry
-        //    var emergencyItem = Instantiate(emergencyPrefab, listContainer);
-        //    var emergencyText = emergencyItem.GetComponentInChildren<TextMeshProUGUI>();
-        //    emergencyText.text = emergencies[i].emergencyName;
-        //    listItems.Add(emergencyItem);
-
-        //    for (int j = 0; j < emergencies[i].presetAffectedRegions.Count; j++)
-        //    {// Create Placeholder for Regions
-        //        var regionPlaceholder = new GameObject($"RegionsPlaceholder_{i}_{j}", typeof(RectTransform));
-        //        regionPlaceholder.transform.SetParent(listContainer);
-
-        //        // Add LayoutElement to Placeholder
-        //        var layoutElement = regionPlaceholder.AddComponent<LayoutElement>();
-        //        layoutElement.preferredHeight = 0; // Default height
-
-        //        listItems.Add(regionPlaceholder); // Add placeholder to listItems.
-
-        //        Debug.Log($"Created placeholder at index {listItems.Count - 1} with LayoutElement.");
-        //    }
-        //}
 
         HighlightEmergency(selectedEmergencyIndex);
         DebugListStructure(); // Log the structure after initialization.
@@ -129,24 +111,6 @@ public class EmergencyUIHandler : MonoBehaviour
         //DebugListStructure(); // Log the updated list structure.
     }
 
-
-
-    //public void CollapseRegions()
-    //{
-    //    for (int i = listItems.Count - 1; i >= 0; i--)
-    //    {
-    //        if (listItems[i].name.Contains("Region"))
-    //        {
-    //            Destroy(listItems[i]);
-    //            listItems.RemoveAt(i);
-    //        }
-    //    }
-
-    //    ResetSpacing();
-
-    //    DebugListStructure();
-    //}
-
     public void HighlightEmergency(int index)
     {
         if (index < 0 || index * 2 >= listItems.Count) return;
@@ -180,8 +144,8 @@ public class EmergencyUIHandler : MonoBehaviour
             {
                 return;
             }
-            
-            
+
+
             int newEmergencyIndex = (selectedEmergencyIndex + direction + allEmergencies.Count) % allEmergencies.Count;
 
             if (newEmergencyIndex < 0 || newEmergencyIndex * 2 >= listItems.Count)
@@ -226,6 +190,59 @@ public class EmergencyUIHandler : MonoBehaviour
         }
 
         DebugListStructure(); // Log the list structure after scrolling.
+
+        //if (selectedRegionIndex == -1) // Scrolling through emergencies
+        //{
+        //    if (allEmergencies.Count == 0)
+        //    {
+        //        return;
+        //    }
+
+
+        //    int newEmergencyIndex = (selectedEmergencyIndex + direction + allEmergencies.Count) % allEmergencies.Count;
+
+        //    if (newEmergencyIndex < 0 || newEmergencyIndex * 2 >= listItems.Count)
+        //    {
+        //        Debug.LogWarning("Scroll failed: No more emergencies to scroll to.");
+        //        return;
+        //    }
+
+        //    HighlightEmergency(newEmergencyIndex);
+        //}
+        //else // Scrolling through regions
+        //{
+        //    int newRegionIndex = selectedRegionIndex + direction;
+
+        //    // Locate the placeholder for the currently selected emergency.
+        //    int placeholderIndex = selectedEmergencyIndex * 2 + 1;
+
+        //    if (placeholderIndex >= listItems.Count || listItems[placeholderIndex] == null)
+        //    {
+        //        Debug.LogWarning("Scroll failed: Placeholder is invalid or missing.");
+        //        return;
+        //    }
+
+        //    // Count regions under the placeholder.
+        //    int regionsCount = 0;
+        //    for (int i = placeholderIndex + 1; i < listItems.Count; i++)
+        //    {
+        //        if (listItems[i].name.Contains("Region"))
+        //            regionsCount++;
+        //        else
+        //            break; // Stop counting when the next emergency is encountered.
+        //    }
+
+        //    if (newRegionIndex < 0 || newRegionIndex >= regionsCount)
+        //    {
+        //        HighlightEmergency(selectedEmergencyIndex + direction); // Wrap back to emergency scrolling.
+        //    }
+        //    else
+        //    {
+        //        HighlightRegion(newRegionIndex);
+        //    }
+        //}
+
+        //DebugListStructure(); // Log the list structure after scrolling.
     }
 
     public void ClearDisplay()

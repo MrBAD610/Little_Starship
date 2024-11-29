@@ -45,11 +45,6 @@ public class PlayerInventory : MonoBehaviour
         emergencyUIHandler.DisplayEmergenciesWithRegions(selectedColonist.emergencies, selectedColonist.colonistRegions); // Format emergencies for display
     }
 
-    public void SelectEmergency()
-    {
-        emergencyUIHandler.ExpandRegions();
-    }
-
     //public void NavigateEmergencies(int direction)
     //{
     //    var emergencies = slotList[selectedColonistIndex].emergencies;
@@ -142,6 +137,7 @@ public class PlayerInventory : MonoBehaviour
         if (slotList[selectedColonistIndex] == null)
         {
             UpdateUISlot(selectedColonistIndex, colonist); // Update colonist slots UI to account for colonist collected
+            UpdateEmergencyUI();                            // Update the Emergency UI
         }
         else
         {
@@ -156,8 +152,6 @@ public class PlayerInventory : MonoBehaviour
         ++filledSlots;
         colonist.gameObject.SetActive(false); // Deactivate colonist in the scene
         Debug.Log($"Colonist Collected. Slots remaining: {numberOfSlots - filledSlots}/{numberOfSlots}");
-
-        UpdateEmergencyUI(); // Update the UI for the new selection
     }
 
     public void EjectColonist()
