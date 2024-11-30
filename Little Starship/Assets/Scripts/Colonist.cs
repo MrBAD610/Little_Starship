@@ -6,6 +6,8 @@ public class Colonist : MonoBehaviour
 {
     public List<MedicalEmergency> emergencies;
     public List<List<BodyRegion>> colonistRegions = new List<List<BodyRegion>>();
+    public List<List<float>> neededTimeForEachRegion = new List<List<float>>();
+    public List<float> neededTimeForEachEmergency = new List<float>();
     public List<List<float>> progressOfRegions = new List<List<float>>();
     public List<float> progressOfEmergencies = new List<float>();
     public Rigidbody ColonistRigidbody { get; private set; }
@@ -23,9 +25,11 @@ public class Colonist : MonoBehaviour
         foreach (var emergency in emergencies)
         {
             colonistRegions.Add(new List<BodyRegion>());        // Initialize new list of body regions
-            progressOfRegions.Add(new List<float>());  // Initialize new list of stabilization times
-            float emergencyProgress = 0f;
-            string regionLog = $"{gameObject.name}: emergency progress at index {regionAndTimeListIndex} is ";
+            neededTimeForEachRegion.Add(new List<float>());     // Initialize new list of stabilization times
+            progressOfRegions.Add(new List<float>());           // Initialize new list storing region progresses
+            float emergencyTotalTime = 0f;
+            string regionTimeLog = $"{gameObject.name}: required region time at index {regionAndTimeListIndex} is ";
+            string regionProgressLog = $"{gameObject.name}: region progress at index {regionAndTimeListIndex} is ";
 
             // Skip if the random regions are already chosen
             if (emergency.presetAffectedRegions != null && emergency.presetAffectedRegions.Count > 0) 
@@ -34,17 +38,21 @@ public class Colonist : MonoBehaviour
 
                 for (int regionIndex = 0; regionIndex < colonistRegions[regionAndTimeListIndex].Count; regionIndex++)
                 {
-                    progressOfRegions[regionAndTimeListIndex].Add(emergency.stabilizationTime);
-                    regionLog += $"({emergency.stabilizationTime})";
-                    emergencyProgress += emergency.stabilizationTime;
+                    neededTimeForEachRegion[regionAndTimeListIndex].Add(emergency.stabilizationTime);
+                    progressOfRegions[regionAndTimeListIndex].Add(0f);
+                    regionTimeLog += $"({emergency.stabilizationTime})";
+                    regionProgressLog += $"({0f})";
+                    emergencyTotalTime += emergency.stabilizationTime;
                 }
             }
 
             if (emergency.randomAffectedRegions == null || emergency.randomAffectedRegions.Count == 0)
             {
-                Debug.Log(regionLog);
-                Debug.Log($"{gameObject.name}: emergency progress at index {regionAndTimeListIndex} is {emergencyProgress}");
-                progressOfEmergencies.Add(emergencyProgress);
+                Debug.Log(regionTimeLog);
+                Debug.Log($"{gameObject.name}: required emergency time at index {regionAndTimeListIndex} is {emergencyTotalTime}");
+                Debug.Log($"{gameObject.name}: emergency progress at index {regionAndTimeListIndex} is {0f}");
+                neededTimeForEachEmergency.Add(emergencyTotalTime);
+                progressOfEmergencies.Add(0f);
                 continue;
             }
 
@@ -61,14 +69,19 @@ public class Colonist : MonoBehaviour
             foreach (int index in selectedIndices)
             {
                 colonistRegions[regionAndTimeListIndex].Add(emergency.randomAffectedRegions[index]);
-                progressOfRegions[regionAndTimeListIndex].Add(emergency.stabilizationTime);
-                regionLog += $"({emergency.stabilizationTime})";
-                emergencyProgress += emergency.stabilizationTime;
+                neededTimeForEachRegion[regionAndTimeListIndex].Add(emergency.stabilizationTime);
+                progressOfRegions[regionAndTimeListIndex].Add(0f);
+                regionTimeLog += $"({emergency.stabilizationTime})";
+                regionProgressLog += $"({0f})";
+                emergencyTotalTime += emergency.stabilizationTime;
             }
 
-            Debug.Log(regionLog);
-            Debug.Log($"{gameObject.name}: emergency progress at index {regionAndTimeListIndex} is {emergencyProgress}");
-            progressOfEmergencies.Add(emergencyProgress);
+            Debug.Log(regionTimeLog);
+            Debug.Log(regionProgressLog);
+            Debug.Log($"{gameObject.name}: required emergency time at index {regionAndTimeListIndex} is {0f}");
+            Debug.Log($"{gameObject.name}: emergency progress at index {regionAndTimeListIndex} is {emergencyTotalTime}");
+            neededTimeForEachEmergency.Add(emergencyTotalTime);
+            progressOfEmergencies.Add(0f);
             ++regionAndTimeListIndex;
         }
 

@@ -145,7 +145,7 @@ public class PlayerController : MonoBehaviour
 
             if (selectInput && !hasSelected)
             {
-                emergencyUIHandler.ExpandRegions();
+                emergencyUIHandler.PerformSelection();
                 hasSelected = true; // Prevent an emergency/region from being selected multiple times
 
                 //Debug.Log("Has hit select button");

@@ -45,27 +45,6 @@ public class PlayerInventory : MonoBehaviour
         emergencyUIHandler.DisplayEmergenciesWithRegions(selectedColonist); // Format emergencies for display
     }
 
-    //public void NavigateEmergencies(int direction)
-    //{
-    //    var emergencies = slotList[selectedColonistIndex].emergencies;
-    //    int newIndex = (selectedEmergencyIndex + direction + emergencies.Count) % emergencies.Count;
-    //    emergencyUIHandler.HighlightEmergency(newIndex);
-    //}
-
-    //public void SelectEmergency()
-    //{
-    //    var emergencies = slotList[selectedColonistIndex].emergencies;
-    //    var selectedEmergency = emergencies[selectedEmergencyIndex];
-    //    //emergencyUIHandler.DisplayRegions(selectedEmergency.presetAffectedRegions);
-    //}
-
-    //public void NavigateRegions(int direction)
-    //{
-    //    var regions = slotList[selectedColonistIndex].emergencies[selectedEmergencyIndex].presetAffectedRegions;
-    //    int newIndex = (selectedRegionIndex + direction + regions.Count) % regions.Count;
-    //    emergencyUIHandler.HighlightRegion(newIndex);
-    //}
-
     private void InstantiateSlots()
     {
         slotList = new List<Colonist>(new Colonist[numberOfSlots]); // Initialize slotList filled with preset capacity, numberOfSlots, of null values
