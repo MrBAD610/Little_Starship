@@ -11,6 +11,7 @@ public class EmergencyUIHandler : MonoBehaviour
     [SerializeField] private GameObject regionGroupPrefab; // Prefab for region vertical groups
     [SerializeField] private Transform listContainer;    // Parent container for emergencies and regions
 
+    private Colonist currentColonist;
     private List<GameObject> emergencyItems = new List<GameObject>();
     private List<GameObject> placeholderItems = new List<GameObject>();
     private List<List<GameObject>> regionItems = new List<List<GameObject>>();
@@ -19,8 +20,13 @@ public class EmergencyUIHandler : MonoBehaviour
     private int expansionIndex = 0;
     private bool hasExpanded = false;
 
-    public void DisplayEmergenciesWithRegions(List<MedicalEmergency> emergencies, List<List<BodyRegion>> Regions)
+    public void DisplayEmergenciesWithRegions(Colonist colonistInput)
     {
+        currentColonist = colonistInput;
+
+        List<MedicalEmergency> emergencies = currentColonist.emergencies;
+        List<List<BodyRegion>> regions = currentColonist.colonistRegions;
+
         ClearList(); // Ensure the list is empty before repopulating.
 
         for (int i = 0; i < emergencies.Count; i++)
@@ -36,12 +42,12 @@ public class EmergencyUIHandler : MonoBehaviour
             //rectTrans.sizeDelta = new Vector2(100, 100 * Regions[i].Count);
 
             regionItems.Add(new List<GameObject>());
-            for (int j = 0; j < Regions[i].Count; j++)
+            for (int j = 0; j < regions[i].Count; j++)
             {
                 // Create region and parent it under the placeholder's parent.
                 GameObject regionItem = Instantiate(regionPrefab, regionPlaceholder.transform);
                 var regionText = regionItem.GetComponentInChildren<TextMeshProUGUI>();
-                regionText.text = Regions[i][j].ToString();
+                regionText.text = regions[i][j].ToString();
 
                 regionItems[i].Add(regionItem);
             }

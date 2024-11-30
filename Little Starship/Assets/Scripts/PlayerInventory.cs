@@ -42,7 +42,7 @@ public class PlayerInventory : MonoBehaviour
             return;
         }
         Colonist selectedColonist = slotList[selectedColonistIndex];
-        emergencyUIHandler.DisplayEmergenciesWithRegions(selectedColonist.emergencies, selectedColonist.colonistRegions); // Format emergencies for display
+        emergencyUIHandler.DisplayEmergenciesWithRegions(selectedColonist); // Format emergencies for display
     }
 
     //public void NavigateEmergencies(int direction)

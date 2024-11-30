@@ -6,30 +6,36 @@ public class Colonist : MonoBehaviour
 {
     public List<MedicalEmergency> emergencies;
     public List<List<BodyRegion>> colonistRegions = new List<List<BodyRegion>>();
+    public List<List<float>> colonistStabilizationTimes = new List<List<float>>();
     public Rigidbody ColonistRigidbody { get; private set; }
 
     private void Awake()
     {
         ColonistRigidbody = GetComponent<Rigidbody>(); 
-        InitializeRegionList(); // Initialize random regions on Awake
+        InitializeRegionsAndTimes(); // Initialize random regions on Awake
     }
 
-    private void InitializeRegionList()
+    private void InitializeRegionsAndTimes()
     {
-        int regionListIndex = 0;
+        int regionAndTimeListIndex = 0;
 
         foreach (var emergency in emergencies)
         {
-            colonistRegions.Add(new List<BodyRegion>()); // Initialize new list of body regions
+            colonistRegions.Add(new List<BodyRegion>());        // Initialize new list of body regions
+            colonistStabilizationTimes.Add(new List<float>());  // Initialize new list of stabilization times
 
             // Skip if the random regions are already chosen
             if (emergency.presetAffectedRegions != null && emergency.presetAffectedRegions.Count > 0) 
             {
-                colonistRegions[regionListIndex] = emergency.presetAffectedRegions;
+                colonistRegions[regionAndTimeListIndex] = emergency.presetAffectedRegions;
+
+                for (int regionIndex = 0; regionIndex < colonistRegions[regionAndTimeListIndex].Count; regionIndex++)
+                {
+                    colonistStabilizationTimes[regionAndTimeListIndex].Add(emergency.stabilizationTime);
+                }
             }
 
-            if (emergency.randomAffectedRegions == null || emergency.randomAffectedRegions.Count == 0)
-                continue;
+            if (emergency.randomAffectedRegions == null || emergency.randomAffectedRegions.Count == 0) continue;
 
             HashSet<int> selectedIndices = new HashSet<int>();
 
@@ -41,15 +47,12 @@ public class Colonist : MonoBehaviour
             }
 
             // Add the chosen regions to the emergency's preset list
-            //emergency.presetAffectedRegions = new List<BodyRegion>();
-
             foreach (int index in selectedIndices)
             {
-                //emergency.presetAffectedRegions.Add(emergency.randomAffectedRegions[index]);
-                colonistRegions[regionListIndex].Add(emergency.randomAffectedRegions[index]);
+                colonistRegions[regionAndTimeListIndex].Add(emergency.randomAffectedRegions[index]);
+                colonistStabilizationTimes[regionAndTimeListIndex].Add(emergency.stabilizationTime);
             }
-
-            ++regionListIndex;
+            ++regionAndTimeListIndex;
         }
 
         //Debug.Log($"Random regions initialized for Colonist: {gameObject.name}");
