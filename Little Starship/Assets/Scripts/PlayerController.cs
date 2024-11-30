@@ -44,7 +44,8 @@ public class PlayerController : MonoBehaviour
     private float timeOfLastCycle = 0f;
     private float timeOfLastScroll = 0f;
 
-    private bool hasEjected = false; // Prevent multiple ejections on a single press
+    private bool hasSelected = false; // Prevent multiple selections on a single press
+    private bool hasEjected = false;  // Prevent multiple ejections on a single press
 
     public bool CanGrab
     {
@@ -132,22 +133,26 @@ public class PlayerController : MonoBehaviour
                 {
                     emergencyUIHandler.Scroll(-1);
                     timeOfLastScroll = Time.time;
-                    Debug.Log($"Scrolled up at {timeOfLastCycle}");
+                    //Debug.Log($"Scrolled up at {timeOfLastCycle}");
                 }
                 else if (scrollInput < 0f) // scroll down to next medical emergency/body region
                 {
                     emergencyUIHandler.Scroll(1);
                     timeOfLastScroll = Time.time;
-                    Debug.Log($"Scrolled down at {timeOfLastCycle}");
+                    //Debug.Log($"Scrolled down at {timeOfLastCycle}");
                 }
             }
 
-            if (selectInput)
+            if (selectInput && !hasSelected)
             {
-                //SelectEmergency(); // Select or expand/collapse
-
                 emergencyUIHandler.ExpandRegions();
-                Debug.Log("Has hit select button");
+                hasSelected = true; // Prevent an emergency/region from being selected multiple times
+
+                //Debug.Log("Has hit select button");
+            }
+            else if (!selectInput)
+            {
+                hasSelected = false; // Allow an emergency/region to be selected
             }
 
             if (ejectInput && !hasEjected)
@@ -155,7 +160,7 @@ public class PlayerController : MonoBehaviour
                 Eject();
                 hasEjected = true; // Prevent multiple colonists from being ejected
             }
-            if (!ejectInput)
+            else if (!ejectInput)
             {
                 hasEjected = false; // Allow another colonist to be ejected
             }

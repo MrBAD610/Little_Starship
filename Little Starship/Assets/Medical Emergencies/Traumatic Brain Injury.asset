@@ -15,5 +15,5 @@ MonoBehaviour:
   emergencyName: Traumatic Brain Injury
   presetAffectedRegions: 01000000
   randomAffectedRegions: 
-  stabilizationTime: 0
+  stabilizationTime: 4
   desiredRandomRegions: 0

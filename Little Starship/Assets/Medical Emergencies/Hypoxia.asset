@@ -15,5 +15,5 @@ MonoBehaviour:
   emergencyName: Hypoxia
   presetAffectedRegions: 00000000
   randomAffectedRegions: 
-  stabilizationTime: 10
+  stabilizationTime: 4
   desiredRandomRegions: 0

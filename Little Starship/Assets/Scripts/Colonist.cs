@@ -11,10 +11,10 @@ public class Colonist : MonoBehaviour
     private void Awake()
     {
         ColonistRigidbody = GetComponent<Rigidbody>(); 
-        InitializeRandomRegions(); // Initialize random regions on Awake
+        InitializeRegionList(); // Initialize random regions on Awake
     }
 
-    private void InitializeRandomRegions()
+    private void InitializeRegionList()
     {
         int regionListIndex = 0;
 
@@ -52,7 +52,7 @@ public class Colonist : MonoBehaviour
             ++regionListIndex;
         }
 
-        Debug.Log($"Random regions initialized for Colonist: {gameObject.name}");
+        //Debug.Log($"Random regions initialized for Colonist: {gameObject.name}");
     }
 
     private void OnCollisionEnter(Collision other)
