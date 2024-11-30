@@ -28,6 +28,8 @@ public class EmergencyUIHandler : MonoBehaviour
 
         List<MedicalEmergency> emergencies = currentColonist.emergencies;
         List<List<BodyRegion>> regions = currentColonist.colonistRegions;
+        List<float> emergencyProgresses = currentColonist.progressOfEmergencies;
+        List<List<float>> regionProgresses = currentColonist.progressOfRegions;
 
         ClearList(); // Ensure the list is empty before repopulating.
 
@@ -35,21 +37,63 @@ public class EmergencyUIHandler : MonoBehaviour
         {
             // Create Emergency Entry
             var emergencyItem = Instantiate(emergencyPrefab, listContainer);
+
             var emergencyText = emergencyItem.GetComponentInChildren<TextMeshProUGUI>();
             emergencyText.text = emergencies[i].emergencyName;
+
+            var emergencyProgress = emergencyItem.GetComponentInChildren<CircularProgressBar>();
+            Debug.Log($"Colonist Data: emergencies.Count = {currentColonist.emergencies.Count}, emergencyProgresses.Count = {currentColonist.progressOfEmergencies.Count}");
+            if (emergencies.Count != emergencyProgresses.Count)
+            {
+                Debug.LogError($"Mismatch: emergencies.Count ({emergencies.Count}) != emergencyProgresses.Count ({emergencyProgresses.Count})");
+                return; // Exit early to prevent runtime error
+            }
+            if (emergencyProgresses.Count == 0)
+            {
+                Debug.LogWarning("emergencyProgresses is empty.");
+                return; // Avoid processing further
+            }
+            if (i < emergencyProgresses.Count)
+            {
+                emergencyProgress.timeTillCompletion = emergencyProgresses[i];
+            }
+            else
+            {
+                Debug.LogError($"Index {i} out of range for emergencyProgresses (Count: {emergencyProgresses.Count})");
+            }
+
+            emergencyProgressBars.Add(emergencyProgress);
             emergencyItems.Add(emergencyItem);
 
             GameObject regionPlaceholder = Instantiate(regionGroupPrefab, listContainer);
-            //RectTransform rectTrans = regionPlaceholder.GetComponent<RectTransform>();
-            //rectTrans.sizeDelta = new Vector2(100, 100 * Regions[i].Count);
 
             regionItems.Add(new List<GameObject>());
+            regionProgressBars.Add(new List<CircularProgressBar>());
+
+            if (i >= regions.Count || regions[i] == null)
+            {
+                Debug.LogError($"Invalid index or null region at index {i}");
+                continue;
+            }
+
             for (int j = 0; j < regions[i].Count; j++)
             {
                 // Create region and parent it under the placeholder's parent.
                 GameObject regionItem = Instantiate(regionPrefab, regionPlaceholder.transform);
+
                 var regionText = regionItem.GetComponentInChildren<TextMeshProUGUI>();
                 regionText.text = regions[i][j].ToString();
+
+                var regionProgress = regionItem.GetComponentInChildren<CircularProgressBar>();
+                if (regionProgress != null && i < regionProgresses.Count && j < regionProgresses[i].Count)
+                {
+                    regionProgress.timeTillCompletion = regionProgresses[i][j];
+                    regionProgressBars[i].Add(regionProgress);
+                }
+                else
+                {
+                    Debug.LogWarning($"Invalid progress bar data at region {i}, index {j}");
+                }
 
                 regionItems[i].Add(regionItem);
             }
@@ -198,7 +242,7 @@ public class EmergencyUIHandler : MonoBehaviour
                 Debug.Log($"Selected Region at index {newRegionIndex}");
                 HighlightRegion(newRegionIndex);
             }
-            
+
         }
     }
 

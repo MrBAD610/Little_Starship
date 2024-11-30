@@ -257,7 +257,7 @@ PrefabInstance:
     - target: {fileID: 1964558046340041509, guid: 244f33fe481e18848a5108f20bc69183,
         type: 3}
       propertyPath: isProgressing
-      value: 1
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 1964558046340041509, guid: 244f33fe481e18848a5108f20bc69183,
         type: 3}

@@ -15,5 +15,5 @@ MonoBehaviour:
   emergencyName: Ebullism
   presetAffectedRegions: 00000000
   randomAffectedRegions: 
-  stabilizationTime: 0
+  stabilizationTime: 10
   desiredRandomRegions: 0

@@ -40,7 +40,13 @@ public class Colonist : MonoBehaviour
                 }
             }
 
-            if (emergency.randomAffectedRegions == null || emergency.randomAffectedRegions.Count == 0) continue;
+            if (emergency.randomAffectedRegions == null || emergency.randomAffectedRegions.Count == 0)
+            {
+                Debug.Log(regionLog);
+                Debug.Log($"{gameObject.name}: emergency progress at index {regionAndTimeListIndex} is {emergencyProgress}");
+                progressOfEmergencies.Add(emergencyProgress);
+                continue;
+            }
 
             HashSet<int> selectedIndices = new HashSet<int>();
 
