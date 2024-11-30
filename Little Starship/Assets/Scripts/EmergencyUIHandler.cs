@@ -15,6 +15,8 @@ public class EmergencyUIHandler : MonoBehaviour
     private List<GameObject> emergencyItems = new List<GameObject>();
     private List<GameObject> placeholderItems = new List<GameObject>();
     private List<List<GameObject>> regionItems = new List<List<GameObject>>();
+    private List<List<CircularProgressBar>> regionProgressBars = new List<List<CircularProgressBar>>();
+    private List<CircularProgressBar> emergencyProgressBars = new List<CircularProgressBar>();
     private int selectedIndex = 0;
     private int selectedRegionIndex = 0;
     private int expansionIndex = 0;
