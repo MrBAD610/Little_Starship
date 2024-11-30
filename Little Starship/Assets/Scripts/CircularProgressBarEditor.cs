@@ -11,12 +11,13 @@ public class CircularProgressBarEditor : Editor
         // Draw default inspector
         DrawDefaultInspector();
 
-        // Update the progress bar on changes
+        // Check for changes in the inspector
         if (GUI.changed)
         {
             progressBar.currentProgress = Mathf.Clamp(progressBar.currentProgress, 0f, progressBar.timeTillCompletion);
-            EditorApplication.QueuePlayerLoopUpdate(); // Update the scene safely
-            SceneView.RepaintAll(); // Ensure the Scene view reflects the changes
+
+            // Update the scene view for visual feedback
+            SceneView.RepaintAll();
         }
     }
 }

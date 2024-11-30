@@ -5,7 +5,7 @@ using UnityEngine.UI;
 public class CircularProgressBar : MonoBehaviour
 {
     [Header("Progress Bar Settings")]
-    [SerializeField] public float timeTillCompletion = 0f;
+    [SerializeField] public float timeTillCompletion = 10f;
 
     [Header("Display Settings")]
     [SerializeField] private Sprite symbolSprite;
@@ -34,39 +34,55 @@ public class CircularProgressBar : MonoBehaviour
 
     private void UpdateProgressBar()
     {
-        if (timeTillCompletion <= 0)
+        if (Application.isPlaying)
         {
-            Debug.LogWarning("Set time till completion to value greater than 0.");
+            if (timeTillCompletion <= 0)
+            {
+                Debug.LogWarning("Set time till completion to value greater than 0.");
+            }
+
+            if (currentProgress < timeTillCompletion)
+            {
+                currentProgress += Time.deltaTime;
+
+                if (outerRingImage != null)
+                    outerRingImage.fillAmount = currentProgress / timeTillCompletion;
+
+                if (outerRingShadowImage != null)
+                    outerRingShadowImage.fillAmount = currentProgress / timeTillCompletion;
+            }
+            
+            if (currentProgress > timeTillCompletion) currentProgress = timeTillCompletion;
         }
 
-        if (currentProgress < timeTillCompletion)
-        {
-            currentProgress += Time.deltaTime;
-
-            if (outerRingImage != null)
-                outerRingImage.fillAmount = currentProgress / timeTillCompletion;
-
-            if (outerRingShadowImage != null)
-                outerRingShadowImage.fillAmount = currentProgress / timeTillCompletion;
-        }
-
-        if (currentProgress > timeTillCompletion) currentProgress = timeTillCompletion;
-
+        // Always update health color (edit or runtime)
         UpdateHealthColor();
     }
 
     private void UpdateHealthColor()
     {
+        // Check if references are properly assigned
+        if (symbolImage == null || symbolShadowImage == null || outerRingImage == null || outerRingShadowImage == null)
+        {
+            Debug.LogWarning("One or more required images are not assigned. Ensure InitializeForDisplay has been executed.");
+            return; // Exit early if any references are null
+        }
+
+        // Update health color logic
         Color healthColor;
 
-        if (currentProgress == timeTillCompletion) healthColor = completeColor;
-        else healthColor = Color.Lerp(lowStatusColor, fullStatusColor, (currentProgress / timeTillCompletion));
+        if (currentProgress == timeTillCompletion)
+            healthColor = completeColor;
+        else
+            healthColor = Color.Lerp(lowStatusColor, fullStatusColor, currentProgress / timeTillCompletion);
 
+        // Apply colors to the relevant images
         symbolImage.color = healthColor;
         symbolShadowImage.color = healthColor;
         outerRingImage.color = healthColor;
         outerRingShadowImage.color = healthColor;
     }
+
 
     private void InitializeForDisplay()
     {
@@ -109,9 +125,17 @@ public class CircularProgressBar : MonoBehaviour
     {
         if (!Application.isPlaying)
         {
-            InitializeForDisplay(); // Ensure references are updated in Edit mode
-            UpdateProgressBar(); // Update visuals based on inspector changes
+            InitializeForDisplay(); // Ensure all references are set
+            currentProgress = Mathf.Clamp(currentProgress, 0f, timeTillCompletion);
+
+            // Update visuals based on currentProgress
+            if (outerRingImage != null)
+                outerRingImage.fillAmount = currentProgress / timeTillCompletion;
+
+            if (outerRingShadowImage != null)
+                outerRingShadowImage.fillAmount = currentProgress / timeTillCompletion;
+
+            UpdateHealthColor();
         }
     }
-
 }

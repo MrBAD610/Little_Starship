@@ -58,7 +58,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5686275, g: 0.57254905, b: 0.5686275, a: 1}
+  m_Color: {r: 0.24199998, g: 0.758, b: 0.758, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -71,7 +71,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
-  m_FillAmount: 0.663
+  m_FillAmount: 0.758
   m_FillClockwise: 0
   m_FillOrigin: 2
   m_UseSpriteMesh: 0
@@ -134,7 +134,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5686275, g: 0.57254905, b: 0.5686275, a: 1}
+  m_Color: {r: 0.24199998, g: 0.758, b: 0.758, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -210,7 +210,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5686275, g: 0.57254905, b: 0.5686275, a: 1}
+  m_Color: {r: 0.24199998, g: 0.758, b: 0.758, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -286,7 +286,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.5686275, g: 0.57254905, b: 0.5686275, a: 1}
+  m_Color: {r: 0.24199998, g: 0.758, b: 0.758, a: 1}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -299,7 +299,7 @@ MonoBehaviour:
   m_PreserveAspect: 0
   m_FillCenter: 1
   m_FillMethod: 4
-  m_FillAmount: 0.663
+  m_FillAmount: 0.758
   m_FillClockwise: 0
   m_FillOrigin: 2
   m_UseSpriteMesh: 0
@@ -405,5 +405,5 @@ MonoBehaviour:
   fullStatusColor: {r: 0, g: 1, b: 1, a: 1}
   lowStatusColor: {r: 1, g: 0, b: 0, a: 1}
   completeColor: {r: 0, g: 1, b: 0, a: 1}
-  currentProgress: 0
+  currentProgress: 7.58
   isProgressing: 1
