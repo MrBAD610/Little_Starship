@@ -40,11 +40,10 @@ public class EmergencyUIHandler : MonoBehaviour
 
         List<MedicalEmergency> emergencies = currentColonist.emergencies;
         List<List<BodyRegion>> regions = currentColonist.colonistRegions;
-        List<float> emergencyMaxTimes = currentColonist.neededTimeForEachEmergency;
-        List<List<float>> regionMaxTimes = currentColonist.neededTimeForEachRegion;
-
-        emergencyProgresses = currentColonist.progressOfEmergencies;
-        regionProgresses = currentColonist.progressOfRegions;
+        var colonistEmergencyStabilizationTimes = currentColonist.neededTimeForEachEmergency;
+        var colonistRegionStabilizationTimes = currentColonist.neededTimeForEachRegion;
+        var colonistEmergencyProgressTimes = currentColonist.progressOfEmergencies;
+        var colonistRegionProgresseTimes = currentColonist.progressOfRegions;
 
         ClearList(); // Ensure the list is empty before repopulating.
 
@@ -57,25 +56,25 @@ public class EmergencyUIHandler : MonoBehaviour
             emergencyText.text = emergencies[i].emergencyName;
 
             var emergencyProgressBar = emergencyItem.GetComponentInChildren<CircularProgressBar>();
-            Debug.Log($"Colonist Data: emergencies.Count = {currentColonist.emergencies.Count}, emergencyProgresses.Count = {currentColonist.neededTimeForEachEmergency.Count}");
-            if (emergencies.Count != emergencyMaxTimes.Count || emergencies.Count != emergencyProgresses.Count)
+           
+            if (emergencies.Count != colonistEmergencyStabilizationTimes.Count || emergencies.Count != colonistEmergencyProgressTimes.Count)
             {
-                Debug.LogError($"Mismatch: emergencies.Count ({emergencies.Count}) != emergencyMaxTimes.Count ({emergencyMaxTimes.Count}) or != emergencyProgresses.Count ({emergencyProgresses.Count})");
+                Debug.LogError($"Mismatch: emergencies.Count ({emergencies.Count}) != colonistEmergencyStabilizationTimes.Count ({colonistEmergencyStabilizationTimes.Count}) or != colonistEmergencyProgressTimes.Count ({colonistEmergencyProgressTimes.Count})");
                 return; // Exit early to prevent runtime error
             }
-            if (emergencyMaxTimes.Count == 0 || emergencyProgresses.Count == 0)
+            if (colonistEmergencyStabilizationTimes.Count == 0 || colonistEmergencyProgressTimes.Count == 0)
             {
-                Debug.LogWarning($"emergencyMaxTimes ({emergencyMaxTimes.Count}) or emergencyProgresses ({emergencyProgresses.Count}) is empty.");
+                Debug.LogWarning($"colonistEmergencyStabilizationTimes ({colonistEmergencyStabilizationTimes.Count}) or colonistEmergencyProgressTimes ({colonistEmergencyProgressTimes.Count}) is empty.");
                 return; // Avoid processing further
             }
-            if (i < emergencyMaxTimes.Count && i < emergencyProgresses.Count)
+            if (i < colonistEmergencyStabilizationTimes.Count && i < colonistEmergencyProgressTimes.Count)
             {
-                emergencyProgressBar.timeTillCompletion = emergencyMaxTimes[i];
-                emergencyProgressBar.currentProgress = emergencyProgresses[i];
+                emergencyProgressBar.timeTillCompletion = colonistEmergencyStabilizationTimes[i];
+                emergencyProgressBar.currentProgress = colonistEmergencyProgressTimes[i];
             }
             else
             {
-                Debug.LogError($"Index {i} out of range for emergencyProgresses (Count: {emergencyMaxTimes.Count})");
+                Debug.LogError($"Index {i} out of range for colonistEmergencyProgressTimes (Count: {colonistEmergencyStabilizationTimes.Count})");
             }
 
             emergencyProgressBars.Add(emergencyProgressBar);
@@ -101,10 +100,10 @@ public class EmergencyUIHandler : MonoBehaviour
                 regionText.text = regions[i][j].ToString();
 
                 var regionProgressBar = regionItem.GetComponentInChildren<CircularProgressBar>();
-                if (regionProgressBar != null && i < regionMaxTimes.Count && j < regionMaxTimes[i].Count && i < regionProgresses.Count && j < regionProgresses[i].Count)
+                if (regionProgressBar != null && i < colonistRegionStabilizationTimes.Count && j < colonistRegionStabilizationTimes[i].Count && i < colonistRegionProgresseTimes.Count && j < colonistRegionProgresseTimes[i].Count)
                 {
-                    regionProgressBar.timeTillCompletion = regionMaxTimes[i][j];
-                    regionProgressBar.currentProgress = regionProgresses[i][j];
+                    regionProgressBar.timeTillCompletion = colonistRegionStabilizationTimes[i][j];
+                    regionProgressBar.currentProgress = colonistRegionProgresseTimes[i][j];
                     regionProgressBars[i].Add(regionProgressBar);
                 }
                 else
@@ -393,16 +392,16 @@ public class EmergencyUIHandler : MonoBehaviour
             }
         regionItems.Clear();
 
-        foreach (var emergencyBar in emergencyProgressBars)
-        {
-            Destroy(emergencyBar);
-        }
+        //foreach (var emergencyBar in emergencyProgressBars)
+        //{
+        //    Destroy(emergencyBar);
+        //}
         emergencyProgressBars.Clear();
 
-        foreach (List<CircularProgressBar> regionBarGroup in regionProgressBars) foreach (var regionBar in regionBarGroup)
-            {
-                Destroy(regionBar);
-            }
+        //foreach (List<CircularProgressBar> regionBarGroup in regionProgressBars) foreach (var regionBar in regionBarGroup)
+        //    {
+        //        Destroy(regionBar);
+        //    }
         regionProgressBars.Clear();
 
         emergencyProgresses = new List<float>();
