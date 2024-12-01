@@ -37,6 +37,8 @@ public class GameManager : MonoBehaviour
         {
             reloadButton.gameObject.SetActive(true);
         }
+
+
     }
 
     public void ReloadScene()

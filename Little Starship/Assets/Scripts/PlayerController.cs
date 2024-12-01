@@ -40,12 +40,14 @@ public class PlayerController : MonoBehaviour
     private float scrollInput;
     private bool selectInput;
     private bool ejectInput;
+    private bool quitInput;
 
     private float timeOfLastCycle = 0f;
     private float timeOfLastScroll = 0f;
 
     private bool hasSelected = false; // Prevent multiple selections on a single press
     private bool hasEjected = false;  // Prevent multiple ejections on a single press
+    private bool hasQuit = false;     // Prevent multiple quits on a single press
 
     public bool CanGrab
     {
@@ -98,6 +100,17 @@ public class PlayerController : MonoBehaviour
         scrollInput = inputHandler.ScrollInput;
         selectInput = inputHandler.SelectInput;
         ejectInput = inputHandler.EjectInput;
+        quitInput = inputHandler.QuitInput;
+
+        if (quitInput && !hasQuit)
+        {
+            Application.Quit();
+            hasQuit = true; // Prevent multiple quits
+        }
+        else if (!quitInput)
+        {
+            hasQuit = false; // Allow another quit
+        }
     }
 
     private void FixedUpdate()
