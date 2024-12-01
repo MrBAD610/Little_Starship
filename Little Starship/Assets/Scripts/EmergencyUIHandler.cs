@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
+using System.Collections;
 
 public class EmergencyUIHandler : MonoBehaviour
 {
@@ -20,10 +21,14 @@ public class EmergencyUIHandler : MonoBehaviour
     private List<List<float>> regionProgresses = new List<List<float>>();
     private List<CircularProgressBar> emergencyProgressBars = new List<CircularProgressBar>();
     private List<List<CircularProgressBar>> regionProgressBars = new List<List<CircularProgressBar>>();
-    
-    private int selectedIndex = 0;
+
+    private int selectedEmergencyIndex = 0;
     private int selectedRegionIndex = 0;
     private int expansionIndex = 0;
+    private int progressingEmergencyIndex = -1;
+    private int progressingRegionIndex = -1;
+    private CircularProgressBar progressingEmergency;
+    private CircularProgressBar progressingRegion;
     private bool hasExpanded = false;
 
     private enum NavigationState { Emergency, Region }
@@ -123,13 +128,17 @@ public class EmergencyUIHandler : MonoBehaviour
         {
             ExpandRegions();
         }
+        else if (currentState == NavigationState.Region)
+        {
+            MakeProgress();
+        }
     }
 
     private void ExpandRegions()
     {
-        if (selectedIndex < 0 || selectedIndex >= placeholderItems.Count)
+        if (selectedEmergencyIndex < 0 || selectedEmergencyIndex >= placeholderItems.Count)
         {
-            Debug.LogWarning($"Can't expand, selectedIndex {selectedIndex} out of range (0) - ({placeholderItems.Count - 1})");
+            Debug.LogWarning($"Can't expand, selectedEmergencyIndex {selectedEmergencyIndex} out of range (0) - ({placeholderItems.Count - 1})");
             return;
         }
 
@@ -146,29 +155,61 @@ public class EmergencyUIHandler : MonoBehaviour
             }
         }
 
-        expansionIndex = selectedIndex;
+        expansionIndex = selectedEmergencyIndex;
 
         if (!hasExpanded) hasExpanded = true;
         placeholderItems[expansionIndex].SetActive(true);
         ResizeRegionGroup(placeholderItems[expansionIndex], regionItems[expansionIndex].Count);
+        currentState = NavigationState.Region;
 
         HighlightRegion(0);
     }
 
-    public void HighlightEmergency(int index)
+    private void MakeProgress()
     {
-        if (index < 0 || index >= emergencyItems.Count)
+        if (expansionIndex < 0 || expansionIndex >= regionItems.Count)
         {
-            Debug.LogWarning($"Can't highlight Emergency at index {index} since it is out of range (0) - ({emergencyItems.Count - 1})");
+            Debug.LogWarning($"Can't progress, expansionIndex {expansionIndex} out of range (0) - ({regionItems.Count - 1})");
+            return;
+        }
+        if (selectedRegionIndex < 0 || selectedRegionIndex >= regionItems[expansionIndex].Count)
+        {
+            Debug.LogWarning($"Can't progress, selectedRegionIndex {selectedRegionIndex} out of range (0) - ({regionItems[expansionIndex].Count - 1})");
+            return;
+        }
+
+        if (progressingRegionIndex != -1 && progressingEmergencyIndex != -1)
+        {
+            progressingRegion.isProgressing = false;
+            progressingEmergency.isProgressing = false;
+        }
+
+        progressingEmergencyIndex = expansionIndex;
+        progressingRegionIndex = selectedRegionIndex;
+
+        progressingEmergency = emergencyProgressBars[progressingEmergencyIndex];
+        progressingRegion = regionProgressBars[progressingEmergencyIndex][progressingRegionIndex];
+
+        progressingEmergency.isProgressing = true;
+        progressingRegion.isProgressing = true;
+
+        StartCoroutine(TrackingEmergencyProgress());
+    }
+
+    public void HighlightEmergency(int emergencyIndex)
+    {
+        if (emergencyIndex < 0 || emergencyIndex >= emergencyItems.Count)
+        {
+            Debug.LogWarning($"Can't highlight Emergency at index {emergencyIndex} since it is out of range (0) - ({emergencyItems.Count - 1})");
             return;
         }
 
         ResetHighlights();
-        selectedIndex = index;
+        selectedEmergencyIndex = emergencyIndex;
 
-        var emergencyItem = emergencyItems[index];
+        var emergencyItem = emergencyItems[emergencyIndex];
         emergencyItem.GetComponent<Image>().color = Color.yellow;
-        Debug.Log($"Highlighted Emergency at index {index} between range (0) - ({emergencyItems.Count - 1})");
+        Debug.Log($"Highlighted Emergency at index {emergencyIndex} between range (0) - ({emergencyItems.Count - 1})");
     }
 
     public void HighlightRegion(int regionIndex)
@@ -184,7 +225,7 @@ public class EmergencyUIHandler : MonoBehaviour
 
         var regionItem = regionItems[expansionIndex][regionIndex];
         regionItem.GetComponent<Image>().color = Color.green;
-        Debug.Log($"Highlighted Region in index {selectedIndex} region group at index {regionIndex} between range (0) - ({regionItems[selectedIndex].Count - 1})");
+        Debug.Log($"Highlighted Region in index {selectedEmergencyIndex} region group at index {regionIndex} between range (0) - ({regionItems[selectedEmergencyIndex].Count - 1})");
     }
 
     public void Scroll(int direction)
@@ -194,17 +235,17 @@ public class EmergencyUIHandler : MonoBehaviour
             Debug.LogWarning($"Cannot divide to find new index since there are {emergencyItems.Count} emergencies");
             return;
         }
-        int newIndex = (selectedIndex + direction + emergencyItems.Count) % emergencyItems.Count;
+        int newIndex = (selectedEmergencyIndex + direction + emergencyItems.Count) % emergencyItems.Count;
 
         if (currentState == NavigationState.Emergency) // Scrolling through emergencies
         {
-            if (selectedIndex < 0 || selectedIndex >= emergencyItems.Count)
+            if (selectedEmergencyIndex < 0 || selectedEmergencyIndex >= emergencyItems.Count)
             {
                 Debug.LogWarning($"Scroll failed: {newIndex} is an invalid emergency index to scroll to.");
                 return;
             }
 
-            if (newIndex == ((expansionIndex - 1 + emergencyItems.Count) % emergencyItems.Count) && hasExpanded)
+            if (selectedEmergencyIndex == expansionIndex && hasExpanded)
             {
                 currentState = NavigationState.Region;
                 ResizeRegionGroup(placeholderItems[expansionIndex], regionItems[expansionIndex].Count);
@@ -230,16 +271,16 @@ public class EmergencyUIHandler : MonoBehaviour
         }
         else if (currentState == NavigationState.Region) // Scrolling through regions
         {
-            if (selectedIndex >= placeholderItems.Count || placeholderItems[selectedIndex] == null)
+            if (selectedEmergencyIndex >= placeholderItems.Count || placeholderItems[selectedEmergencyIndex] == null)
             {
-                Debug.LogWarning($"Scroll failed: Placeholder at index {selectedIndex} is invalid or missing.");
+                Debug.LogWarning($"Scroll failed: Placeholder at selectedEmergencyIndex {selectedEmergencyIndex} is invalid or missing.");
                 return;
             }
 
             int newRegionIndex = selectedRegionIndex + direction;
             //if (selectedIndex > expansionIndex) newRegionIndex = 0;
 
-            if (newRegionIndex < 0 || newRegionIndex >= regionItems[selectedIndex].Count)
+            if (newRegionIndex < 0 || newRegionIndex >= regionItems[selectedEmergencyIndex].Count)
             {
                 currentState = NavigationState.Emergency;
                 ResizeRegionGroup(placeholderItems[expansionIndex], 1);
@@ -335,9 +376,28 @@ public class EmergencyUIHandler : MonoBehaviour
                 Destroy(region);
             }
         regionItems.Clear();
-        expansionIndex = 0; // reset expansionIndex
+        expansionIndex = 0;              // reset expansionIndex
+        progressingEmergencyIndex = -1;  // reset progressingEmergencyIndex
+        progressingRegionIndex = -1;     // reset expansionIndex
         hasExpanded = false;
         currentState = NavigationState.Emergency;
+    }
+
+    private IEnumerator TrackingEmergencyProgress()
+    {
+        while (progressingEmergency.isProgressing == true)
+        {
+            if (progressingRegion.isProgressing == false)
+            {
+                progressingEmergency.isProgressing = false;
+                
+            }
+            else
+            {
+                progressingEmergency.isProgressing = true;
+                yield return null;
+            }
+        }
     }
 
 }

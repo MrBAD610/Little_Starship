@@ -51,8 +51,12 @@ public class CircularProgressBar : MonoBehaviour
                 if (outerRingShadowImage != null)
                     outerRingShadowImage.fillAmount = currentProgress / timeTillCompletion;
             }
-            
-            if (currentProgress > timeTillCompletion) currentProgress = timeTillCompletion;
+
+            if (currentProgress >= timeTillCompletion)
+            {
+                currentProgress = timeTillCompletion;
+                isProgressing = false;
+            }
         }
 
         // Always update health color (edit or runtime)
