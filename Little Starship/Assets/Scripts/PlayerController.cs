@@ -9,10 +9,15 @@ public class PlayerController : MonoBehaviour
 
     [Header("Position Settings")]
     [SerializeField] private float yPosition = 0f;
-    //[SerializeField] private float yCorrectionSpeed = 1f;
 
     [Header("Tractor Beam Settings")]
     [SerializeField] private float attractSpeed = 1.0f;
+
+    [Header("Colonist Slot Cycling Settings")]
+    [SerializeField] private float cycleSlotCooldown = 0.2f;
+
+    [Header("Medical Emergency Scroll Settings")]
+    [SerializeField] private float scrollCooldown = 0.2f;
 
     [Header("Camera Settings")]
     [SerializeField] private float cameraOffset = 5.0f;
@@ -20,18 +25,27 @@ public class PlayerController : MonoBehaviour
     private Rigidbody playerRb;
 
     private PlayerInputHandler inputHandler;
+    private PlayerInventory playerInventory;
+    private PlayerHealth playerHealth;
+    private EmergencyUIHandler emergencyUIHandler;
 
     public Camera mainCamera;
 
     private Transform playerTransform;
-    //private Transform beamTransform;
 
     private float horizontalInput;
     private float verticalInput;
     public bool grabInput;
-    //public bool canGrab;
+    private float cycleInput;
+    private float scrollInput;
+    private bool selectInput;
+    private bool ejectInput;
 
-    private PlayerHealth playerHealth;
+    private float timeOfLastCycle = 0f;
+    private float timeOfLastScroll = 0f;
+
+    private bool hasSelected = false; // Prevent multiple selections on a single press
+    private bool hasEjected = false;  // Prevent multiple ejections on a single press
 
     public bool CanGrab
     {
@@ -56,13 +70,21 @@ public class PlayerController : MonoBehaviour
         }
     }
 
+    // Awake is called when the object is loaded before start
     private void Awake()
     {
+        playerTransform = transform;
         playerRb = GetComponent<Rigidbody>();
+        playerInventory = GetComponent<PlayerInventory>();
+        playerHealth = GetComponent<PlayerHealth>();
+        emergencyUIHandler = GetComponent<EmergencyUIHandler>();
+    }
+    
+    //Start is called before the first frame update
+    private void Start()
+    {
         inputHandler = PlayerInputHandler.Instance;
         //mainCamera = inputHandler.Camera;
-        playerTransform = transform;
-        playerHealth = GetComponent<PlayerHealth>();
     }
 
     // Update is called once per frame
@@ -72,7 +94,10 @@ public class PlayerController : MonoBehaviour
         verticalInput = inputHandler.MoveInput.y;
         curScreenPos = inputHandler.LookInput;
         grabInput = inputHandler.GrabInput;
-        //canGrab = inputHandler.CanGrab;
+        cycleInput = inputHandler.CycleInput;
+        scrollInput = inputHandler.ScrollInput;
+        selectInput = inputHandler.SelectInput;
+        ejectInput = inputHandler.EjectInput;
     }
 
     private void FixedUpdate()
@@ -86,6 +111,58 @@ public class PlayerController : MonoBehaviour
             if (CanGrab)
             {
                 StartCoroutine(Drag());
+            }
+
+            if (Time.time - timeOfLastCycle > cycleSlotCooldown)
+            {
+                if (cycleInput > 0f) // Cycle to next colonist
+                {
+                    playerInventory.SelectNextColonist();
+                    timeOfLastCycle = Time.time;
+                }
+                else if (cycleInput < 0f) // Cycle to previous colonist
+                {
+                    playerInventory.SelectPreviousColonist();
+                    timeOfLastCycle = Time.time;
+                }
+            }
+
+            if (Time.time - timeOfLastScroll > scrollCooldown)
+            {
+                if (scrollInput > 0f) // scroll up to next medical emergency/body region
+                {
+                    emergencyUIHandler.Scroll(-1);
+                    timeOfLastScroll = Time.time;
+                    //Debug.Log($"Scrolled up at {timeOfLastCycle}");
+                }
+                else if (scrollInput < 0f) // scroll down to next medical emergency/body region
+                {
+                    emergencyUIHandler.Scroll(1);
+                    timeOfLastScroll = Time.time;
+                    //Debug.Log($"Scrolled down at {timeOfLastCycle}");
+                }
+            }
+
+            if (selectInput && !hasSelected)
+            {
+                emergencyUIHandler.PerformSelection();
+                hasSelected = true; // Prevent an emergency/region from being selected multiple times
+
+                //Debug.Log("Has hit select button");
+            }
+            else if (!selectInput)
+            {
+                hasSelected = false; // Allow an emergency/region to be selected
+            }
+
+            if (ejectInput && !hasEjected)
+            {
+                Eject();
+                hasEjected = true; // Prevent multiple colonists from being ejected
+            }
+            else if (!ejectInput)
+            {
+                hasEjected = false; // Allow another colonist to be ejected
             }
         }
     }
@@ -116,9 +193,18 @@ public class PlayerController : MonoBehaviour
         {
             playerTransform.position = desiredPosition;
         }
+    }
 
-        //rb.velocity = desiredPosition - rb.position;
-        //rb.AddForce((desiredPosition - rb.position) * yCorrectionSpeed, ForceMode.Force);
+    void Eject()
+    {
+        if (playerInventory.slotList.Count > 0)
+        {
+            playerInventory.EjectColonist();
+        }
+        else
+        {
+            Debug.Log("No colonists to eject");
+        }
     }
 
     private IEnumerator Drag()

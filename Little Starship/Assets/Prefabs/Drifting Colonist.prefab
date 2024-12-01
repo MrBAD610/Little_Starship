@@ -94,6 +94,7 @@ GameObject:
   - component: {fileID: 5380580570352742200}
   - component: {fileID: 6856870962496636382}
   - component: {fileID: 3548263745365219747}
+  - component: {fileID: -2149809301205051347}
   m_Layer: 7
   m_Name: Drifting Colonist
   m_TagString: Colonist
@@ -167,3 +168,16 @@ Rigidbody:
   m_Interpolate: 0
   m_Constraints: 4
   m_CollisionDetection: 0
+--- !u!114 &-2149809301205051347
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 5309587183570560409}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9e4ecdcca28722f439c73b36099593f0, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  emergencies: []
