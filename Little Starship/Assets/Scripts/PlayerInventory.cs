@@ -142,6 +142,8 @@ public class PlayerInventory : MonoBehaviour
         }
 
         Colonist colonist = slotList[selectedColonistIndex];
+        colonist = emergencyUIHandler.ApplyProgressionToColonist(colonist);
+
         colonist.transform.position = playerTransform.position + playerTransform.forward; // Eject colonist near player (1 unit in front of)
         colonist.gameObject.SetActive(true); // Reactivate colonist in the scene
 

@@ -313,6 +313,22 @@ public class EmergencyUIHandler : MonoBehaviour
         ClearList();
     }
 
+    public Colonist ApplyProgressionToColonist(Colonist newColonist)
+    {
+        Colonist updatedColonist = newColonist;
+        if (progressingRegion.isProgressing == true || progressingEmergency.isProgressing == true)
+        {
+            progressingRegion.isProgressing = false;
+            progressingEmergency.isProgressing = false;
+            regionProgresses[progressingEmergencyIndex][progressingRegionIndex] = progressingRegion.currentProgress;
+            emergencyProgresses[progressingEmergencyIndex] += progressingRegion.currentProgress;
+        }
+
+        updatedColonist.progressOfEmergencies = emergencyProgresses;
+        updatedColonist.progressOfRegions = regionProgresses;
+        return updatedColonist;
+    }
+
     private void ResizeRegionGroup(GameObject rectangleObject, int numRegions)
     {
         RectTransform rectTrans = rectangleObject.GetComponent<RectTransform>();
@@ -376,6 +392,22 @@ public class EmergencyUIHandler : MonoBehaviour
                 Destroy(region);
             }
         regionItems.Clear();
+
+        foreach (var emergencyBar in emergencyProgressBars)
+        {
+            Destroy(emergencyBar);
+        }
+        emergencyProgressBars.Clear();
+
+        foreach (List<CircularProgressBar> regionBarGroup in regionProgressBars) foreach (var regionBar in regionBarGroup)
+            {
+                Destroy(regionBar);
+            }
+        regionProgressBars.Clear();
+
+        emergencyProgresses = new List<float>();
+        regionProgresses = new List<List<float>>();
+
         expansionIndex = 0;              // reset expansionIndex
         progressingEmergencyIndex = -1;  // reset progressingEmergencyIndex
         progressingRegionIndex = -1;     // reset expansionIndex
@@ -390,7 +422,8 @@ public class EmergencyUIHandler : MonoBehaviour
             if (progressingRegion.isProgressing == false)
             {
                 progressingEmergency.isProgressing = false;
-                
+                regionProgresses[progressingEmergencyIndex][progressingRegionIndex] = progressingRegion.currentProgress;
+                emergencyProgresses[progressingEmergencyIndex] += progressingRegion.currentProgress;
             }
             else
             {
