@@ -19,6 +19,7 @@ public class PlayerInputHandler : MonoBehaviour
     [SerializeField] private string scroll = "Scroll";
     [SerializeField] private string select = "Select";
     [SerializeField] private string eject = "Eject";
+    [SerializeField] private string quit = "Quit";
 
     private InputAction moveAction;
     private InputAction lookAction;
@@ -27,6 +28,7 @@ public class PlayerInputHandler : MonoBehaviour
     private InputAction scrollAction;
     private InputAction selectAction;
     private InputAction ejectAction;
+    private InputAction quitAction;
 
     //public Camera Camera { get; private set; }
     public Camera Camera;
@@ -39,6 +41,7 @@ public class PlayerInputHandler : MonoBehaviour
     public float ScrollInput { get; private set; } // -1 for previous slot, 1 for next slot
     public bool SelectInput { get; private set; }
     public bool EjectInput { get; private set; }
+    public bool QuitInput { get; private set; }
 
     //private bool isDraging;
     //private Vector3 WorldPos
@@ -80,6 +83,7 @@ public class PlayerInputHandler : MonoBehaviour
         scrollAction = playerControls.FindActionMap(actionMapName).FindAction(scroll);
         selectAction = playerControls.FindActionMap(actionMapName).FindAction(select);
         ejectAction = playerControls.FindActionMap(actionMapName).FindAction(eject);
+        quitAction = playerControls.FindActionMap(actionMapName).FindAction(quit);  
         RegisterInputActions();
     }
 
@@ -107,6 +111,9 @@ public class PlayerInputHandler : MonoBehaviour
 
         ejectAction.performed += context => EjectInput = true;
         ejectAction.canceled += context => EjectInput = false;
+
+        quitAction.performed += context => QuitInput = true;
+        quitAction.canceled += context => QuitInput = false;
     }
 
     private void OnEnable()
@@ -118,6 +125,7 @@ public class PlayerInputHandler : MonoBehaviour
         scrollAction.Enable();
         selectAction.Enable();
         ejectAction.Enable();
+        quitAction.Enable();
     }
 
     private void OnDisable()
@@ -129,6 +137,7 @@ public class PlayerInputHandler : MonoBehaviour
         scrollAction.Disable();
         selectAction.Disable();
         ejectAction.Disable();
+        quitAction.Disable();
     }
 
     //private IEnumerator Drag()

@@ -40,6 +40,7 @@ public class PlayerController : MonoBehaviour
     private float scrollInput;
     private bool selectInput;
     private bool ejectInput;
+    private bool quitInput;
 
     private float timeOfLastCycle = 0f;
     private float timeOfLastScroll = 0f;
@@ -98,6 +99,7 @@ public class PlayerController : MonoBehaviour
         scrollInput = inputHandler.ScrollInput;
         selectInput = inputHandler.SelectInput;
         ejectInput = inputHandler.EjectInput;
+        quitInput = inputHandler.QuitInput;
     }
 
     private void FixedUpdate()
@@ -163,6 +165,11 @@ public class PlayerController : MonoBehaviour
             else if (!ejectInput)
             {
                 hasEjected = false; // Allow another colonist to be ejected
+            }
+
+            if (quitInput)
+            {
+                Application.Quit();
             }
         }
     }
