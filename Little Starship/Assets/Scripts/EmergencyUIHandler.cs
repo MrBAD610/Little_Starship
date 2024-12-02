@@ -17,33 +17,43 @@ public class EmergencyUIHandler : MonoBehaviour
     private List<GameObject> emergencyItems = new List<GameObject>();
     private List<GameObject> placeholderItems = new List<GameObject>();
     private List<List<GameObject>> regionItems = new List<List<GameObject>>();
-    private List<float> emergencyProgresses = new List<float>();
-    private List<List<float>> regionProgresses = new List<List<float>>();
+    
+    private List<float> emergencyProgressionTimes = new List<float>();
+    private List<List<float>> regionProgressionTimes = new List<List<float>>();
+    
     private List<CircularProgressBar> emergencyProgressBars = new List<CircularProgressBar>();
     private List<List<CircularProgressBar>> regionProgressBars = new List<List<CircularProgressBar>>();
 
     private int selectedEmergencyIndex = 0;
     private int selectedRegionIndex = 0;
+    
     private int expansionIndex = 0;
+    
     private int progressingEmergencyIndex = -1;
     private int progressingRegionIndex = -1;
+    
     private CircularProgressBar progressingEmergency;
     private CircularProgressBar progressingRegion;
+    
     private bool hasExpanded = false;
 
     private enum NavigationState { Emergency, Region }
     private NavigationState currentState = NavigationState.Emergency;
 
+
+
     public void DisplayEmergenciesWithRegions(Colonist colonistInput)
     {
-        currentColonist = colonistInput;
+        Colonist currentColonist = colonistInput;
 
         List<MedicalEmergency> emergencies = currentColonist.emergencies;
         List<List<BodyRegion>> regions = currentColonist.colonistRegions;
+
         var colonistEmergencyStabilizationTimes = currentColonist.neededTimeForEachEmergency;
         var colonistRegionStabilizationTimes = currentColonist.neededTimeForEachRegion;
+
         var colonistEmergencyProgressTimes = currentColonist.progressOfEmergencies;
-        var colonistRegionProgresseTimes = currentColonist.progressOfRegions;
+        var colonistRegionProgressTimes = currentColonist.progressOfRegions;
 
         ClearList(); // Ensure the list is empty before repopulating.
 
@@ -70,6 +80,7 @@ public class EmergencyUIHandler : MonoBehaviour
             if (i < colonistEmergencyStabilizationTimes.Count && i < colonistEmergencyProgressTimes.Count)
             {
                 emergencyProgressBar.timeTillCompletion = colonistEmergencyStabilizationTimes[i];
+                emergencyProgressionTimes.Add(colonistEmergencyProgressTimes[i]);
                 emergencyProgressBar.currentProgress = colonistEmergencyProgressTimes[i];
             }
             else
@@ -83,6 +94,7 @@ public class EmergencyUIHandler : MonoBehaviour
             GameObject regionPlaceholder = Instantiate(regionGroupPrefab, listContainer);
 
             regionItems.Add(new List<GameObject>());
+            regionProgressionTimes.Add(new List<float>());
             regionProgressBars.Add(new List<CircularProgressBar>());
 
             if (i >= regions.Count || regions[i] == null)
@@ -100,10 +112,11 @@ public class EmergencyUIHandler : MonoBehaviour
                 regionText.text = regions[i][j].ToString();
 
                 var regionProgressBar = regionItem.GetComponentInChildren<CircularProgressBar>();
-                if (regionProgressBar != null && i < colonistRegionStabilizationTimes.Count && j < colonistRegionStabilizationTimes[i].Count && i < colonistRegionProgresseTimes.Count && j < colonistRegionProgresseTimes[i].Count)
+                if (regionProgressBar != null && i < colonistRegionStabilizationTimes.Count && j < colonistRegionStabilizationTimes[i].Count && i < colonistRegionProgressTimes.Count && j < colonistRegionProgressTimes[i].Count)
                 {
                     regionProgressBar.timeTillCompletion = colonistRegionStabilizationTimes[i][j];
-                    regionProgressBar.currentProgress = colonistRegionProgresseTimes[i][j];
+                    regionProgressBar.currentProgress = colonistRegionProgressTimes[i][j];
+                    regionProgressionTimes[i].Add(colonistRegionProgressTimes[i][j]);
                     regionProgressBars[i].Add(regionProgressBar);
                 }
                 else
@@ -121,6 +134,9 @@ public class EmergencyUIHandler : MonoBehaviour
         HighlightEmergency(0);
     }
 
+
+
+
     public void PerformSelection()
     {
         if (currentState == NavigationState.Emergency)
@@ -132,6 +148,10 @@ public class EmergencyUIHandler : MonoBehaviour
             MakeProgress();
         }
     }
+
+
+
+
 
     private void ExpandRegions()
     {
@@ -164,6 +184,9 @@ public class EmergencyUIHandler : MonoBehaviour
         HighlightRegion(0);
     }
 
+
+
+
     private void MakeProgress()
     {
         if (expansionIndex < 0 || expansionIndex >= regionItems.Count)
@@ -195,6 +218,8 @@ public class EmergencyUIHandler : MonoBehaviour
         StartCoroutine(TrackingEmergencyProgress());
     }
 
+
+
     public void HighlightEmergency(int emergencyIndex)
     {
         if (emergencyIndex < 0 || emergencyIndex >= emergencyItems.Count)
@@ -211,6 +236,8 @@ public class EmergencyUIHandler : MonoBehaviour
         Debug.Log($"Highlighted Emergency at index {emergencyIndex} between range (0) - ({emergencyItems.Count - 1})");
     }
 
+
+
     public void HighlightRegion(int regionIndex)
     {
         if (regionIndex < 0 || regionIndex >= regionItems[expansionIndex].Count)
@@ -226,6 +253,8 @@ public class EmergencyUIHandler : MonoBehaviour
         regionItem.GetComponent<Image>().color = Color.green;
         Debug.Log($"Highlighted Region in index {selectedEmergencyIndex} region group at index {regionIndex} between range (0) - ({regionItems[selectedEmergencyIndex].Count - 1})");
     }
+
+
 
     public void Scroll(int direction)
     {
@@ -307,26 +336,56 @@ public class EmergencyUIHandler : MonoBehaviour
         }
     }
 
+
+
+
     public void ClearDisplay()
     {
         ClearList();
     }
 
+
+
     public Colonist ApplyProgressionToColonist(Colonist newColonist)
     {
         Colonist updatedColonist = newColonist;
+        if (updatedColonist == null)
+        {
+            Debug.LogWarning("Cannot apply progression to null colonist.");
+            return null;
+        }
+        if (updatedColonist.emergencies.Count != emergencyProgressionTimes.Count)
+        {
+            Debug.LogWarning($"Cannot apply progression to colonist with {updatedColonist.emergencies.Count} emergencies and {emergencyProgressionTimes.Count} progression times.");
+            return updatedColonist;
+        }
+        if (updatedColonist.colonistRegions.Count != regionProgressionTimes.Count)
+        {
+            Debug.LogWarning($"Cannot apply progression to colonist with {updatedColonist.colonistRegions.Count} region groups and {regionProgressionTimes.Count} progression times.");
+            return updatedColonist;
+        }
+        if (progressingRegion == null || progressingEmergency == null)
+        {
+            Debug.LogWarning("Cannot apply progression without a progressing region or emergency.");
+            return updatedColonist;
+        }
+
+
         if (progressingRegion.isProgressing == true || progressingEmergency.isProgressing == true)
         {
             progressingRegion.isProgressing = false;
             progressingEmergency.isProgressing = false;
-            regionProgresses[progressingEmergencyIndex][progressingRegionIndex] = progressingRegion.currentProgress;
-            emergencyProgresses[progressingEmergencyIndex] += progressingRegion.currentProgress;
+            regionProgressionTimes[progressingEmergencyIndex][progressingRegionIndex] = progressingRegion.currentProgress;
+            emergencyProgressionTimes[progressingEmergencyIndex] += progressingRegion.currentProgress;
         }
 
-        updatedColonist.progressOfEmergencies = emergencyProgresses;
-        updatedColonist.progressOfRegions = regionProgresses;
+        updatedColonist.progressOfEmergencies = emergencyProgressionTimes;
+        updatedColonist.progressOfRegions = regionProgressionTimes;
         return updatedColonist;
     }
+
+
+
 
     private void ResizeRegionGroup(GameObject rectangleObject, int numRegions)
     {
@@ -351,6 +410,9 @@ public class EmergencyUIHandler : MonoBehaviour
 
     }
 
+
+
+
     private void ResetHighlights()
     {
         foreach (var emergency in emergencyItems)
@@ -371,6 +433,8 @@ public class EmergencyUIHandler : MonoBehaviour
                 }
             }
     }
+
+
 
     private void ClearList()
     {
@@ -404,8 +468,8 @@ public class EmergencyUIHandler : MonoBehaviour
         //    }
         regionProgressBars.Clear();
 
-        emergencyProgresses = new List<float>();
-        regionProgresses = new List<List<float>>();
+        emergencyProgressionTimes = new List<float>();
+        regionProgressionTimes = new List<List<float>>();
 
         expansionIndex = 0;              // reset expansionIndex
         progressingEmergencyIndex = -1;  // reset progressingEmergencyIndex
@@ -414,6 +478,9 @@ public class EmergencyUIHandler : MonoBehaviour
         currentState = NavigationState.Emergency;
     }
 
+
+
+
     private IEnumerator TrackingEmergencyProgress()
     {
         while (progressingEmergency.isProgressing == true)
@@ -421,8 +488,8 @@ public class EmergencyUIHandler : MonoBehaviour
             if (progressingRegion.isProgressing == false)
             {
                 progressingEmergency.isProgressing = false;
-                regionProgresses[progressingEmergencyIndex][progressingRegionIndex] = progressingRegion.currentProgress;
-                emergencyProgresses[progressingEmergencyIndex] += progressingRegion.currentProgress;
+                regionProgressionTimes[progressingEmergencyIndex][progressingRegionIndex] = progressingRegion.currentProgress;
+                emergencyProgressionTimes[progressingEmergencyIndex] += progressingRegion.currentProgress;
             }
             else
             {
