@@ -83,7 +83,17 @@ public class PlayerInventory : MonoBehaviour
         {
             updatedSlotImage.sprite = emptySlotSprite;
         }
-        updatedSlotImage.color = (index == selectedColonistIndex) ? Color.green : Color.white; // Highlight the selected colonist slot
+
+        if (index == selectedColonistIndex)
+        {
+            updatedSlotImage.color = Color.green; // Highlight the selected colonist slot
+            UpdateEmergencyUI(); // Update the Emergency UI for the selected colonist
+        }
+        else
+        {
+            updatedSlotImage.color = Color.white; // Reset the color of the slot
+        }
+
     }
 
     public void SelectNextColonist()
@@ -158,6 +168,23 @@ public class PlayerInventory : MonoBehaviour
         Debug.Log($"Colonist Ejected. Slots remaining: {numberOfSlots - filledSlots}/{numberOfSlots}");
 
         UpdateEmergencyUI(); // Update the UI for the new selection
+    }
+
+
+    public void TransmitColonist()
+    {
+        if (slotList[selectedColonistIndex] == null)
+        {
+            Debug.Log($"Slot {selectedColonistIndex + 1} is empty, can't transmit");
+            return;
+        }
+        Colonist colonist = slotList[selectedColonistIndex];
+
+        Destroy(colonist.gameObject); // Destroy the colonist object
+
+        UpdateUISlot(selectedColonistIndex, null); // Update colonist slots UI to account for colonist transmitted
+        UpdateEmergencyUI(); // Update the UI for the transmitted colonist
+        --filledSlots;
     }
 
     public int GetSelectedColonistIndex()

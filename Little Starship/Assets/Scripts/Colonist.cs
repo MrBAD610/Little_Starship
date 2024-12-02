@@ -8,6 +8,8 @@ public class Colonist : MonoBehaviour
     public List<List<BodyRegion>> colonistRegions = new List<List<BodyRegion>>();
     public List<List<float>> neededTimeForEachRegion = new List<List<float>>();
     public List<float> neededTimeForEachEmergency = new List<float>();
+    public float neededTimeToStabilizeColonist = 0f;
+    public float totalStabilizationProgress = 0f;
     public List<List<float>> progressOfRegions = new List<List<float>>();
     public List<float> progressOfEmergencies = new List<float>();
     public Rigidbody ColonistRigidbody { get; private set; }
@@ -20,6 +22,7 @@ public class Colonist : MonoBehaviour
 
     private void InitializeRegionsAndTimes()
     {
+        totalStabilizationProgress = 0f;
         int regionAndTimeListIndex = 0;
 
         foreach (var emergency in emergencies)
@@ -81,6 +84,7 @@ public class Colonist : MonoBehaviour
             Debug.Log($"{gameObject.name}: required emergency time at index {regionAndTimeListIndex} is {0f}");
             Debug.Log($"{gameObject.name}: emergency progress at index {regionAndTimeListIndex} is {emergencyTotalTime}");
             neededTimeForEachEmergency.Add(emergencyTotalTime);
+            neededTimeToStabilizeColonist += emergencyTotalTime;
             progressOfEmergencies.Add(0f);
             ++regionAndTimeListIndex;
         }

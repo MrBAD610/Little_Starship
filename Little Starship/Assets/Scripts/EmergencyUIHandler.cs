@@ -11,8 +11,7 @@ public class EmergencyUIHandler : MonoBehaviour
     [SerializeField] private GameObject regionPrefab;    // Prefab for regions
     [SerializeField] private GameObject regionGroupPrefab; // Prefab for region vertical groups
     [SerializeField] private Transform listContainer;    // Parent container for emergencies and regions
-
-    private Colonist currentColonist;
+    [SerializeField] private Button TransmitButton;      // Button for transmitting stabilized colonist
 
     private List<GameObject> emergencyItems = new List<GameObject>();
     private List<GameObject> placeholderItems = new List<GameObject>();
@@ -20,7 +19,8 @@ public class EmergencyUIHandler : MonoBehaviour
     
     private List<float> emergencyProgressionTimes = new List<float>();
     private List<List<float>> regionProgressionTimes = new List<List<float>>();
-    
+
+    private CircularProgressBar totalProgressBar;
     private List<CircularProgressBar> emergencyProgressBars = new List<CircularProgressBar>();
     private List<List<CircularProgressBar>> regionProgressBars = new List<List<CircularProgressBar>>();
 
@@ -40,7 +40,37 @@ public class EmergencyUIHandler : MonoBehaviour
     private enum NavigationState { Emergency, Region }
     private NavigationState currentState = NavigationState.Emergency;
 
+    private void Start()
+    {
+        if (TransmitButton == null)
+        {
+            Debug.LogError("TransmitButton not found on EmergencyUIHandler.");
+        }
 
+        if (emergencyPrefab == null || regionPrefab == null || regionGroupPrefab == null || listContainer == null)
+        {
+            Debug.LogError("EmergencyUIHandler is missing a prefab or container reference.");
+        }
+
+        totalProgressBar = TransmitButton.GetComponentInChildren<CircularProgressBar>();
+        if (totalProgressBar == null)
+        {
+            Debug.LogError("Total progress bar not found on TransmitButton.");
+            return;
+        }
+    }
+
+    private void Update()
+    {
+        if (totalProgressBar.isComplete)
+        {
+            TransmitButton.interactable = true;
+        }
+        else
+        {
+            TransmitButton.interactable = false;
+        }
+    }
 
     public void DisplayEmergenciesWithRegions(Colonist colonistInput)
     {
@@ -54,6 +84,10 @@ public class EmergencyUIHandler : MonoBehaviour
 
         var colonistEmergencyProgressTimes = currentColonist.progressOfEmergencies;
         var colonistRegionProgressTimes = currentColonist.progressOfRegions;
+
+        totalProgressBar.isProgressing = false;
+        totalProgressBar.timeTillCompletion = currentColonist.neededTimeToStabilizeColonist;
+        totalProgressBar.currentProgress = currentColonist.totalStabilizationProgress;
 
         ClearList(); // Ensure the list is empty before repopulating.
 
@@ -204,6 +238,7 @@ public class EmergencyUIHandler : MonoBehaviour
         {
             progressingRegion.isProgressing = false;
             progressingEmergency.isProgressing = false;
+            totalProgressBar.isProgressing = false;
         }
 
         progressingEmergencyIndex = expansionIndex;
@@ -212,6 +247,7 @@ public class EmergencyUIHandler : MonoBehaviour
         progressingEmergency = emergencyProgressBars[progressingEmergencyIndex];
         progressingRegion = regionProgressBars[progressingEmergencyIndex][progressingRegionIndex];
 
+        totalProgressBar.isProgressing = true;
         progressingEmergency.isProgressing = true;
         progressingRegion.isProgressing = true;
 
@@ -332,7 +368,6 @@ public class EmergencyUIHandler : MonoBehaviour
                 Debug.Log($"Selected Region at index {newRegionIndex}");
                 HighlightRegion(newRegionIndex);
             }
-
         }
     }
 
@@ -370,15 +405,16 @@ public class EmergencyUIHandler : MonoBehaviour
             return updatedColonist;
         }
 
-
-        if (progressingRegion.isProgressing == true || progressingEmergency.isProgressing == true)
+        if (progressingRegion.isProgressing == true || progressingEmergency.isProgressing == true || totalProgressBar.isProgressing == true)
         {
             progressingRegion.isProgressing = false;
             progressingEmergency.isProgressing = false;
+            totalProgressBar.isProgressing = false;
             regionProgressionTimes[progressingEmergencyIndex][progressingRegionIndex] = progressingRegion.currentProgress;
             emergencyProgressionTimes[progressingEmergencyIndex] += progressingRegion.currentProgress;
         }
 
+        updatedColonist.totalStabilizationProgress = totalProgressBar.currentProgress;
         updatedColonist.progressOfEmergencies = emergencyProgressionTimes;
         updatedColonist.progressOfRegions = regionProgressionTimes;
         return updatedColonist;
@@ -423,7 +459,6 @@ public class EmergencyUIHandler : MonoBehaviour
                 image.color = Color.white; // Reset to default
             }
         }
-
         foreach (List<GameObject> regionGroup in regionItems) foreach (var region in regionGroup)
             {
                 var image = region.GetComponent<Image>();
@@ -471,6 +506,12 @@ public class EmergencyUIHandler : MonoBehaviour
         emergencyProgressionTimes = new List<float>();
         regionProgressionTimes = new List<List<float>>();
 
+        if (totalProgressBar != null)
+        {
+            totalProgressBar.isProgressing = false;
+            totalProgressBar.currentProgress = 0f;
+        }
+
         expansionIndex = 0;              // reset expansionIndex
         progressingEmergencyIndex = -1;  // reset progressingEmergencyIndex
         progressingRegionIndex = -1;     // reset expansionIndex
@@ -488,12 +529,15 @@ public class EmergencyUIHandler : MonoBehaviour
             if (progressingRegion.isProgressing == false)
             {
                 progressingEmergency.isProgressing = false;
+                totalProgressBar.isProgressing = false;
+
                 regionProgressionTimes[progressingEmergencyIndex][progressingRegionIndex] = progressingRegion.currentProgress;
                 emergencyProgressionTimes[progressingEmergencyIndex] += progressingRegion.currentProgress;
             }
             else
             {
                 progressingEmergency.isProgressing = true;
+                totalProgressBar.isProgressing = true;
                 yield return null;
             }
         }
