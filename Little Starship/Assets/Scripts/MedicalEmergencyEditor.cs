@@ -1,9 +1,17 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 
 [CustomEditor(typeof(MedicalEmergency))]
 public class MedicalEmergencyEditor : Editor
 {
+    SerializedProperty desiredRandomRegionsProp;
+
+    private void OnEnable()
+    {
+        desiredRandomRegionsProp = serializedObject.FindProperty(nameof(MedicalEmergency.desiredRandomRegions));
+    }
+
     public override void OnInspectorGUI()
     {
         MedicalEmergency emergency = (MedicalEmergency)target;
@@ -22,15 +30,20 @@ public class MedicalEmergencyEditor : Editor
         // Add the custom slider for 'desiredRandomRegions'
         if (emergency.randomAffectedRegions != null && emergency.randomAffectedRegions.Count > 0)
         {
-            emergency.desiredRandomRegions = EditorGUILayout.IntSlider(
-                "Desired Random Regions",
-                emergency.desiredRandomRegions,
+            EditorGUILayout.IntSlider(
+                desiredRandomRegionsProp,
                 1,
-                emergency.randomAffectedRegions.Count
+                emergency.randomAffectedRegions.Count,
+                new GUIContent("Desired Random Regions")
             );
+        }
+        else
+        {
+            EditorGUILayout.HelpBox("Random Affected Regions list is empty or null.", MessageType.Warning);
         }
 
         // Apply any changes made to serialized properties
         serializedObject.ApplyModifiedProperties();
     }
 }
+#endif
