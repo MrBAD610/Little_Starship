@@ -7,11 +7,12 @@ using System.Collections;
 public class EmergencyUIHandler : MonoBehaviour
 {
     [Header("Prefabs and Containers")]
+    [SerializeField] private Transform emergencyContainer;    // Parent container for emergencies and regions
     [SerializeField] private GameObject emergencyPrefab; // Prefab for emergencies
     [SerializeField] private GameObject regionPrefab;    // Prefab for regions
     [SerializeField] private GameObject regionGroupPrefab; // Prefab for region vertical groups
-    [SerializeField] private Transform listContainer;    // Parent container for emergencies and regions
-    [SerializeField] private Button TransmitButton;      // Button for transmitting stabilized colonist
+    
+    [SerializeField] private GameObject TransmitButtonPrefab;      // Button for transmitting stabilized colonist
 
     private List<GameObject> emergencyItems = new List<GameObject>();
     private List<GameObject> placeholderItems = new List<GameObject>();
@@ -19,6 +20,8 @@ public class EmergencyUIHandler : MonoBehaviour
     
     private List<float> emergencyProgressionTimes = new List<float>();
     private List<List<float>> regionProgressionTimes = new List<List<float>>();
+
+    private Button TransmitButton;
 
     private CircularProgressBar totalProgressBar;
     private List<CircularProgressBar> emergencyProgressBars = new List<CircularProgressBar>();
@@ -42,20 +45,27 @@ public class EmergencyUIHandler : MonoBehaviour
 
     private void Start()
     {
-        if (TransmitButton == null)
+        if (TransmitButtonPrefab == null)
         {
-            Debug.LogError("TransmitButton not found on EmergencyUIHandler.");
+            Debug.LogError("TransmitButtonPrefab not found on EmergencyUIHandler.");
         }
 
-        if (emergencyPrefab == null || regionPrefab == null || regionGroupPrefab == null || listContainer == null)
+        if (emergencyPrefab == null || regionPrefab == null || regionGroupPrefab == null || emergencyContainer == null)
         {
             Debug.LogError("EmergencyUIHandler is missing a prefab or container reference.");
         }
 
-        totalProgressBar = TransmitButton.GetComponentInChildren<CircularProgressBar>();
+        TransmitButton = TransmitButtonPrefab.GetComponent<Button>();
+        if (TransmitButton == null)
+        {
+            Debug.LogError("TransmitButton not found on TransmitButtonPrefab.");
+            return;
+        }
+
+        totalProgressBar = TransmitButtonPrefab.GetComponentInChildren<CircularProgressBar>();
         if (totalProgressBar == null)
         {
-            Debug.LogError("Total progress bar not found on TransmitButton.");
+            Debug.LogError("Total progress bar not found on TransmitButtonPrefab.");
             return;
         }
     }
@@ -94,7 +104,7 @@ public class EmergencyUIHandler : MonoBehaviour
         for (int i = 0; i < emergencies.Count; i++)
         {
             // Create Emergency Entry
-            var emergencyItem = Instantiate(emergencyPrefab, listContainer);
+            var emergencyItem = Instantiate(emergencyPrefab, emergencyContainer);
 
             var emergencyText = emergencyItem.GetComponentInChildren<TextMeshProUGUI>();
             emergencyText.text = emergencies[i].emergencyName;
@@ -125,7 +135,7 @@ public class EmergencyUIHandler : MonoBehaviour
             emergencyProgressBars.Add(emergencyProgressBar);
             emergencyItems.Add(emergencyItem);
 
-            GameObject regionPlaceholder = Instantiate(regionGroupPrefab, listContainer);
+            GameObject regionPlaceholder = Instantiate(regionGroupPrefab, emergencyContainer);
 
             regionItems.Add(new List<GameObject>());
             regionProgressionTimes.Add(new List<float>());
