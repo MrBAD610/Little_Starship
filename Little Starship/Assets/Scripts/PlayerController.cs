@@ -147,10 +147,9 @@ public class PlayerController : MonoBehaviour
 
             if (selectInput && !hasSelected)
             {
-                emergencyUIHandler.PerformSelection();
                 hasSelected = true; // Prevent an emergency/region from being selected multiple times
 
-                //Debug.Log("Has hit select button");
+                Debug.Log("Has hit select button");
             }
             else if (!selectInput)
             {
@@ -204,14 +203,7 @@ public class PlayerController : MonoBehaviour
 
     void Eject()
     {
-        if (playerInventory.slotList.Count > 0)
-        {
-            playerInventory.EjectColonist();
-        }
-        else
-        {
-            Debug.Log("No colonists to eject");
-        }
+        playerInventory.EjectColonist();
     }
 
     private IEnumerator Drag()

@@ -49,4 +49,9 @@ public class BodyRegion : ScriptableObject
     /// The stabilization progress for the body region.
     /// </summary>
     public float stabilizationProgress = 0.0f;
+
+    /// <summary>
+    /// Boolean to check if the region is healing.
+    /// </summary>
+    public bool isHealing = false;
 }

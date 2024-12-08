@@ -26,6 +26,10 @@ public class ColonistDiagramUIHandler : MonoBehaviour
     void Start()
     {
         InitializeRegionImagesAndSprites();
+    }
+
+    private void Update()
+    {
         SetDisplay();
     }
 
@@ -43,15 +47,9 @@ public class ColonistDiagramUIHandler : MonoBehaviour
 
     public void SetDisplay()
     {
-        if (displayedInjuryCollection == null)
-        {
-            Debug.Log("Injury collection is null or empty.");
-            return;
-        }
-
         if (displayedInjuryCollection == null || displayedInjuryCollection.injuredBodyCollection == null)
         {
-            Debug.LogError("Full body collection is null.");
+            Debug.LogError("Injury collection or full body collection is null.");
             return;
         }
 
@@ -75,7 +73,15 @@ public class ColonistDiagramUIHandler : MonoBehaviour
                     allRegionImages[(int)region.bodyRegionType].color = nullColor;
                     break;
                 case InjuryStatus.Injured:
-                    allRegionImages[(int)region.bodyRegionType].color = Color.Lerp(lowStatusColor, fullStatusColor, region.stabilizationProgress / region.stabilizationTime);
+                    if (region.stabilizationTime > 0)
+                    {
+                        allRegionImages[(int)region.bodyRegionType].color = Color.Lerp(lowStatusColor, fullStatusColor, region.stabilizationProgress / region.stabilizationTime);
+                    }
+                    else
+                    {
+                        Debug.LogError("Stabilization time is zero or negative.");
+                        allRegionImages[(int)region.bodyRegionType].color = lowStatusColor;
+                    }
                     break;
                 case InjuryStatus.Stabilized:
                     allRegionImages[(int)region.bodyRegionType].color = completeColor;

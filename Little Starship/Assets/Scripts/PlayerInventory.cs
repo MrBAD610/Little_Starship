@@ -7,25 +7,29 @@ using TMPro;
 public class PlayerInventory : MonoBehaviour
 {
     [Header("Inventory Settings")]
-    [SerializeField] public int numberOfSlots = 3;     // Number of slots for storing colonists
-    [SerializeField] public List<Colonist> slotList;   // List of colonist slots full and empty
+    [SerializeField] private int numberOfSlots = 3;     // Number of slots for storing colonists
+    [SerializeField] private List<Colonist> slotList;   // List of colonist slots full and empty
 
     [Header("UI Settings")]
-    [SerializeField] public Image[] colonistSlotImages;
-    [SerializeField] public Sprite fullSlotSprite;
-    [SerializeField] public Sprite emptySlotSprite;
+    [SerializeField] private Image[] colonistSlotImages;
+    [SerializeField] private Sprite fullSlotSprite;
+    [SerializeField] private Sprite emptySlotSprite;
 
     private int selectedColonistIndex = 0; // Tracks the currently selected colonist
     private int filledSlots = 0;
 
     private EmergencyUIHandler emergencyUIHandler;
-
     private Transform playerTransform;
 
     private void Awake()
     {
         playerTransform = transform;
         emergencyUIHandler = GetComponent<EmergencyUIHandler>();
+
+        if (colonistSlotImages == null || emergencyUIHandler == null)
+        {
+            Debug.LogError("UI components or EmergencyUIHandler are not assigned.");
+        }
     }
 
     private void Start()
@@ -75,43 +79,31 @@ public class PlayerInventory : MonoBehaviour
         slotList[index] = colonist;  // Update the slot data
 
         var updatedSlotImage = colonistSlotImages[index];
-        if (slotList[index] != null)
-        {
-            updatedSlotImage.sprite = fullSlotSprite;
-        }
-        else
-        {
-            updatedSlotImage.sprite = emptySlotSprite;
-        }
+        updatedSlotImage.sprite = (slotList[index] != null) ? fullSlotSprite : emptySlotSprite;
+        updatedSlotImage.color = (index == selectedColonistIndex) ? Color.green : Color.white;
 
         if (index == selectedColonistIndex)
         {
-            updatedSlotImage.color = Color.green; // Highlight the selected colonist slot
             UpdateEmergencyUI(); // Update the Emergency UI for the selected colonist
         }
-        else
-        {
-            updatedSlotImage.color = Color.white; // Reset the color of the slot
-        }
-
     }
 
     public void SelectNextColonist()
     {
-        colonistSlotImages[selectedColonistIndex].color = Color.white; // Reset old slot color
-        selectedColonistIndex = (selectedColonistIndex + 1) % numberOfSlots;
-        colonistSlotImages[selectedColonistIndex].color = Color.green; // Highlight newly selected slot
-        Debug.Log($"Selected next colonist slot, slot {selectedColonistIndex + 1}");
-
-        UpdateEmergencyUI(); // Update the UI for the new selection
+        ChangeSelectedColonist((selectedColonistIndex + 1) % numberOfSlots);
     }
 
     public void SelectPreviousColonist()
     {
+        ChangeSelectedColonist((selectedColonistIndex - 1 + numberOfSlots) % numberOfSlots);
+    }
+
+    private void ChangeSelectedColonist(int newIndex)
+    {
         colonistSlotImages[selectedColonistIndex].color = Color.white; // Reset old slot color
-        selectedColonistIndex = (selectedColonistIndex - 1 + numberOfSlots) % numberOfSlots;
+        selectedColonistIndex = newIndex;
         colonistSlotImages[selectedColonistIndex].color = Color.green; // Highlight newly selected slot
-        Debug.Log($"Selected previous colonist slot, slot {selectedColonistIndex + 1}");
+        Debug.Log($"Selected colonist slot {selectedColonistIndex + 1}");
 
         UpdateEmergencyUI(); // Update the UI for the new selection
     }
@@ -126,7 +118,6 @@ public class PlayerInventory : MonoBehaviour
         if (slotList[selectedColonistIndex] == null)
         {
             UpdateUISlot(selectedColonistIndex, colonist); // Update colonist slots UI to account for colonist collected
-            UpdateEmergencyUI();                            // Update the Emergency UI
         }
         else
         {
@@ -154,14 +145,7 @@ public class PlayerInventory : MonoBehaviour
         Colonist colonist = slotList[selectedColonistIndex];
         colonist = emergencyUIHandler.ApplyProgressionToColonist(colonist);
 
-        colonist.transform.position = playerTransform.position + playerTransform.forward; // Eject colonist near player (1 unit in front of)
-        colonist.gameObject.SetActive(true); // Reactivate colonist in the scene
-
-        Rigidbody colonistRb = colonist.ColonistRigidbody;
-        if (colonistRb != null)
-        {
-            colonistRb.velocity = playerTransform.forward; // Apply velocity to have ejected colonist moving away from player
-        }
+        EjectColonistFromSlot(colonist);
 
         UpdateUISlot(selectedColonistIndex, null); // Update colonist slots UI to account for colonist ejected
         --filledSlots;
@@ -170,6 +154,17 @@ public class PlayerInventory : MonoBehaviour
         UpdateEmergencyUI(); // Update the UI for the new selection
     }
 
+    private void EjectColonistFromSlot(Colonist colonist)
+    {
+        colonist.transform.position = playerTransform.position + playerTransform.forward; // Eject colonist near player (1 unit in front of)
+        colonist.gameObject.SetActive(true); // Reactivate colonist in the scene
+
+        Rigidbody colonistRb = colonist.ColonistRigidbody;
+        if (colonistRb != null)
+        {
+            colonistRb.velocity = playerTransform.forward; // Apply velocity to have ejected colonist moving away from player
+        }
+    }
 
     public void TransmitColonist()
     {

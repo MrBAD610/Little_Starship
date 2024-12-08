@@ -10,12 +10,15 @@ public class InjuryCollection : ScriptableObject
     public List<BodyRegion> presetAffectedRegions; // List of preset regions affected by the medical emergency
     public List<BodyRegion> randomAffectedRegions; // List of possible regions affected by the medical emergency
     public int desiredRandomRegions; // Number of random regions needed
+    public float progressSum = 0.0f; // Sum of progress for all regions in this injury collection
+    public string stabilizedRegionTotal = "0/0"; // Total number of stabilized regions
     public float stabilizationTime = 0.0f; // Time to stabilize one region in this injury collection
 
     // Called when the script is loaded or a value changes in the inspector
     private void OnEnable()
     {
         InitializeInjuredBodyCollection(); // Initialize injured body collection
+        GetProgressSum(); // Calculate the sum of progress for all regions
     }
 
     // Initialize the injured body collection with default values
@@ -49,9 +52,45 @@ public class InjuryCollection : ScriptableObject
             BodyRegion newRegion = ScriptableObject.CreateInstance<BodyRegion>();
             newRegion.bodyRegionType = currentRegion.bodyRegionType;
             newRegion.regionInjuryStatus = InjuryStatus.Unharmed;
-            newRegion.stabilizationTime = stabilizationTime;
+            newRegion.stabilizationTime = 0f;
             newRegion.stabilizationProgress = 0f;
             injuredBodyCollection[i] = newRegion;
         }
+    }
+
+    public void ResetInjuryCollection()
+    {
+        for (int i = 0; i < injuredBodyCollection.Length; i++)
+        {
+            injuredBodyCollection[i].regionInjuryStatus = InjuryStatus.Unharmed;
+            injuredBodyCollection[i].stabilizationProgress = 0f;
+        }
+    }
+
+    public void GetProgressSum()
+    {
+        progressSum = 0.0f;
+        foreach (BodyRegion region in injuredBodyCollection)
+        {
+            progressSum += region.stabilizationProgress;
+        }
+    }
+
+    public void UpdateStabilizedRegionTotal()
+    {
+        int totalStabilized = 0;
+        int totalInjured = 0;
+        foreach (BodyRegion region in injuredBodyCollection)
+        {
+            if (region.regionInjuryStatus == InjuryStatus.Stabilized)
+            {
+                totalStabilized++;
+            }
+            if (region.regionInjuryStatus != InjuryStatus.Injured)
+            {
+                totalInjured++;
+            }
+        }
+        stabilizedRegionTotal = totalStabilized + "/" + totalInjured;
     }
 }

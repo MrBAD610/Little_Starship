@@ -3,31 +3,27 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using System.Linq;
 
 public class EmergencyUIHandler : MonoBehaviour
 {
     [Header("Prefabs and Containers")]
-    [SerializeField] private Transform EmergencyContainer;    // Parent container for injury collections
-    [SerializeField] private GameObject EmergencyPrefab; // Prefab for injury collections
+    [SerializeField] private Transform InjuryCollectionReadoutContainer;    // Parent container for injury collections
+    [SerializeField] private GameObject InjuryCollectionReadoutPrefab; // Prefab for injury collections
     [SerializeField] private GameObject TransmitButtonPrefab;      // Button for transmitting stabilized colonist
 
     [SerializeField] private ColonistDiagramUIHandler ColonistDiagramUIHandler;
 
     private List<InjuryCollection> injuryCollections;
 
-    private List<GameObject> emergencyItems = new List<GameObject>();
-    private List<float> emergencyProgressionTimes = new List<float>();
+    private List<GameObject> injuryCollectionReadoutItems = new List<GameObject>();
+    private List<float> injuryCollectionProgressTimes = new List<float>();
 
     private Button TransmitButton;
 
-    private CircularProgressBar totalProgressBar;
-    private List<CircularProgressBar> emergencyProgressBars = new List<CircularProgressBar>();
+    private int selectedInjuryCollectionIndex = 0;
 
-    private int selectedEmergencyIndex = 0;
-
-    private int progressingEmergencyIndex = -1;
-
-    private CircularProgressBar progressingEmergency;
+    private int progressingInjuryCollectionIndex = -1;
 
     private void Start()
     {
@@ -36,7 +32,7 @@ public class EmergencyUIHandler : MonoBehaviour
             Debug.LogError("TransmitButtonPrefab not found on EmergencyUIHandler.");
         }
 
-        if (EmergencyPrefab == null || EmergencyContainer == null)
+        if (InjuryCollectionReadoutPrefab == null || InjuryCollectionReadoutContainer == null)
         {
             Debug.LogError("EmergencyUIHandler is missing a prefab or container reference.");
         }
@@ -47,25 +43,12 @@ public class EmergencyUIHandler : MonoBehaviour
             Debug.LogError("TransmitButton not found on TransmitButtonPrefab.");
             return;
         }
-
-        totalProgressBar = TransmitButtonPrefab.GetComponentInChildren<CircularProgressBar>();
-        if (totalProgressBar == null)
-        {
-            Debug.LogError("Total progress bar not found on TransmitButtonPrefab.");
-            return;
-        }
     }
 
     private void Update()
     {
-        if (totalProgressBar.isComplete)
-        {
-            TransmitButton.interactable = true;
-        }
-        else
-        {
-            TransmitButton.interactable = false;
-        }
+        // Assuming you have some other logic to determine if the button should be interactable
+        TransmitButton.interactable = true;
     }
 
     public void DisplayInjuryCollections(Colonist colonistInput)
@@ -93,95 +76,78 @@ public class EmergencyUIHandler : MonoBehaviour
             return; // Avoid processing further
         }
 
-        totalProgressBar.isProgressing = false;
-        totalProgressBar.timeTillCompletion = currentColonist.neededTimeToStabilizeColonist;
-        totalProgressBar.currentProgress = currentColonist.totalStabilizationProgress;
-
         ClearList(); // Ensure the list is empty before repopulating.
+
+        injuryCollectionProgressTimes = new List<float>(colonistInjuryCollectionProgressTimes); // Update injuryCollectionProgressTimes
 
         for (int i = 0; i < injuryCollections.Count; i++)
         {
             // Create Injury Collection Entry
-            var emergencyItem = Instantiate(EmergencyPrefab, EmergencyContainer);
+            var injuryCollectionItem = Instantiate(InjuryCollectionReadoutPrefab, InjuryCollectionReadoutContainer);
 
-            var emergencyText = emergencyItem.GetComponentInChildren<TextMeshProUGUI>();
-            emergencyText.text = injuryCollections[i].displayedName;
+            var injuryCollectionTexts = injuryCollectionItem.GetComponentsInChildren<TextMeshProUGUI>();
+            if (injuryCollectionTexts.Length > 0)
+            {
+                // Assuming you want to modify the first TextMeshProUGUI component
+                injuryCollectionTexts[0].text = injuryCollections[i].displayedName;
+                injuryCollections[i].UpdateStabilizedRegionTotal();
+                injuryCollectionTexts[1].text = injuryCollections[i].stabilizedRegionTotal;
+            }
+            else
+            {
+                Debug.LogWarning("No TextMeshProUGUI components found in injuryCollectionItem.");
+            }
 
-            var emergencyProgressBar = emergencyItem.GetComponentInChildren<CircularProgressBar>();
-
-            emergencyProgressBar.timeTillCompletion = colonistInjuryCollectionStabilizationTimes[i];
-            emergencyProgressionTimes.Add(colonistInjuryCollectionProgressTimes[i]);
-            emergencyProgressBar.currentProgress = colonistInjuryCollectionProgressTimes[i];
-
-            emergencyProgressBars.Add(emergencyProgressBar);
-            emergencyItems.Add(emergencyItem);
+            injuryCollectionReadoutItems.Add(injuryCollectionItem);
         }
 
         HighlightSelectedInjuryCollection(0);
     }
 
-    public void PerformSelection()
+    public void MakeProgress()
     {
-        MakeProgress();
-    }
-
-    private void MakeProgress()
-    {
-        if (selectedEmergencyIndex < 0 || selectedEmergencyIndex >= emergencyItems.Count)
+        if (selectedInjuryCollectionIndex < 0 || selectedInjuryCollectionIndex >= injuryCollectionReadoutItems.Count)
         {
-            Debug.LogWarning($"Can't progress, selectedEmergencyIndex {selectedEmergencyIndex} out of range (0) - ({emergencyItems.Count - 1})");
+            Debug.LogWarning($"Can't progress, selectedInjuryCollectionIndex {selectedInjuryCollectionIndex} out of range (0) - ({injuryCollectionReadoutItems.Count - 1})");
             return;
         }
-
-        if (progressingEmergencyIndex != -1)
-        {
-            progressingEmergency.isProgressing = false;
-            totalProgressBar.isProgressing = false;
-        }
-
-        progressingEmergencyIndex = selectedEmergencyIndex;
-        progressingEmergency = emergencyProgressBars[progressingEmergencyIndex];
-
-        totalProgressBar.isProgressing = true;
-        progressingEmergency.isProgressing = true;
-
-        StartCoroutine(TrackingEmergencyProgress());
+        progressingInjuryCollectionIndex = selectedInjuryCollectionIndex;
     }
 
-    public void HighlightSelectedInjuryCollection(int emergencyIndex)
+    public void HighlightSelectedInjuryCollection(int injuryCollectionIndex)
     {
-        if (emergencyIndex < 0 || emergencyIndex >= emergencyItems.Count)
+        if (injuryCollectionIndex < 0 || injuryCollectionIndex >= injuryCollectionReadoutItems.Count)
         {
-            Debug.LogWarning($"Can't highlight Emergency at index {emergencyIndex} since it is out of range (0) - ({emergencyItems.Count - 1})");
+            Debug.LogWarning($"Can't highlight Injury Collection at index {injuryCollectionIndex} since it is out of range (0) - ({injuryCollectionReadoutItems.Count - 1})");
             return;
         }
 
         ResetHighlights();
-        selectedEmergencyIndex = emergencyIndex;
-        var emergencyItem = emergencyItems[emergencyIndex];
-        ColonistDiagramUIHandler.displayedInjuryCollection = injuryCollections[emergencyIndex];
+        selectedInjuryCollectionIndex = injuryCollectionIndex;
+        var injuryCollectionItem = injuryCollectionReadoutItems[injuryCollectionIndex];
+        ColonistDiagramUIHandler.displayedInjuryCollection = injuryCollections[injuryCollectionIndex];
         ColonistDiagramUIHandler.SetDisplay();
-        emergencyItem.GetComponent<Image>().color = Color.yellow;
+        injuryCollectionItem.GetComponent<Image>().color = Color.yellow;
 
-        Debug.Log($"Highlighted Emergency at index {emergencyIndex} between range (0) - ({emergencyItems.Count - 1})");
+        Debug.Log($"Highlighted Injury Collection at index {injuryCollectionIndex} between range (0) - ({injuryCollectionReadoutItems.Count - 1})");
     }
 
     public void Scroll(int direction)
     {
-        if (emergencyItems.Count == 0) // Check so no divide by zero
+        if (injuryCollectionReadoutItems.Count == 0) // Check so no divide by zero
         {
-            Debug.LogWarning($"Cannot divide to find new index since there are {emergencyItems.Count} emergencies");
+            Debug.LogWarning($"Cannot divide to find new index since there are {injuryCollectionReadoutItems.Count} injury collections");
             return;
         }
-        int newIndex = (selectedEmergencyIndex + direction + emergencyItems.Count) % emergencyItems.Count;
+        int newIndex = (selectedInjuryCollectionIndex + direction + injuryCollectionReadoutItems.Count) % injuryCollectionReadoutItems.Count;
 
-        if (selectedEmergencyIndex < 0 || selectedEmergencyIndex >= emergencyItems.Count)
+        if (selectedInjuryCollectionIndex < 0 || selectedInjuryCollectionIndex >= injuryCollectionReadoutItems.Count)
         {
-            Debug.LogWarning($"Scroll failed: {newIndex} is an invalid emergency index to scroll to.");
+            Debug.LogWarning($"Scroll failed: {newIndex} is an invalid injury collection index to scroll to.");
             return;
         }
 
-        Debug.Log($"Selected Emeregency at index {newIndex}");
+        Debug.Log($"Selected Injury Collection at index {newIndex}");
         HighlightSelectedInjuryCollection(newIndex);
 
     }
@@ -193,40 +159,41 @@ public class EmergencyUIHandler : MonoBehaviour
 
     public Colonist ApplyProgressionToColonist(Colonist newColonist)
     {
-        Colonist updatedColonist = newColonist;
-        if (updatedColonist == null)
+        if (newColonist == null)
         {
             Debug.LogWarning("Cannot apply progression to null colonist.");
             return null;
         }
-        if (updatedColonist.colonistInjuryCollections.Count != emergencyProgressionTimes.Count)
+
+        if (newColonist.colonistInjuryCollections.Count != injuryCollectionProgressTimes.Count)
         {
-            Debug.LogWarning($"Cannot apply progression to colonist with {updatedColonist.colonistInjuryCollections.Count} injury collections and {emergencyProgressionTimes.Count} progression times.");
-            return updatedColonist;
-        }
-        if (progressingEmergency == null)
-        {
-            Debug.LogWarning("Cannot apply progression without a progressing emergency.");
-            return updatedColonist;
+            Debug.LogWarning($"Cannot apply progression to colonist with {newColonist.colonistInjuryCollections.Count} injury collections and {injuryCollectionProgressTimes.Count} progression times.");
+            return newColonist;
         }
 
-        if (progressingEmergency.isProgressing == true || totalProgressBar.isProgressing == true)
+        for (int i = 0; i < newColonist.colonistInjuryCollections.Count; i++)
         {
-            progressingEmergency.isProgressing = false;
-            totalProgressBar.isProgressing = false;
-            emergencyProgressionTimes[progressingEmergencyIndex] += progressingEmergency.currentProgress;
+            var injuryCollection = newColonist.colonistInjuryCollections[i];
+            var progressTime = injuryCollectionProgressTimes[i];
+
+            // Update the progress time for each injury collection
+            injuryCollection.progressSum = progressTime;
+
+            // Update the stabilized region total
+            injuryCollection.UpdateStabilizedRegionTotal();
         }
 
-        updatedColonist.totalStabilizationProgress = totalProgressBar.currentProgress;
-        updatedColonist.progressOfInjuryCollections = emergencyProgressionTimes;
-        return updatedColonist;
+        // Optionally, update the total stabilization progress for the colonist
+        newColonist.totalStabilizationProgress = injuryCollectionProgressTimes.Sum();
+
+        return newColonist;
     }
 
     private void ResetHighlights()
     {
-        foreach (var emergency in emergencyItems)
+        foreach (var injuryCollection in injuryCollectionReadoutItems)
         {
-            var image = emergency.GetComponent<Image>();
+            var image = injuryCollection.GetComponent<Image>();
             if (image != null)
             {
                 image.color = Color.white; // Reset to default
@@ -236,45 +203,19 @@ public class EmergencyUIHandler : MonoBehaviour
 
     private void ClearList()
     {
-        foreach (var emergency in emergencyItems)
+        foreach (var injuryCollection in injuryCollectionReadoutItems)
         {
-            Destroy(emergency);
+            Destroy(injuryCollection);
         }
-        emergencyItems.Clear();
+        injuryCollectionReadoutItems.Clear();
 
-        emergencyProgressBars.Clear();
-        emergencyProgressionTimes = new List<float>();
+        injuryCollectionProgressTimes = new List<float>();
 
         InjuryCollection emptyInjuryCollection = ScriptableObject.CreateInstance<InjuryCollection>();
         ColonistDiagramUIHandler.displayedInjuryCollection = emptyInjuryCollection;
         ColonistDiagramUIHandler.SetDisplay();
 
-        if (totalProgressBar != null)
-        {
-            totalProgressBar.isProgressing = false;
-            totalProgressBar.currentProgress = 0f;
-        }
-
-        progressingEmergencyIndex = -1;  // reset progressingEmergencyIndex
+        progressingInjuryCollectionIndex = -1;  // reset progressingInjuryCollectionIndex
     }
 
-    private IEnumerator TrackingEmergencyProgress()
-    {
-        while (progressingEmergency.isProgressing == true)
-        {
-            if (progressingEmergency.isProgressing == false)
-            {
-                progressingEmergency.isProgressing = false;
-                totalProgressBar.isProgressing = false;
-
-                emergencyProgressionTimes[progressingEmergencyIndex] += progressingEmergency.currentProgress;
-            }
-            else
-            {
-                progressingEmergency.isProgressing = true;
-                totalProgressBar.isProgressing = true;
-                yield return null;
-            }
-        }
-    }
 }

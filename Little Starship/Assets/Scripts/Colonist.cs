@@ -38,17 +38,18 @@ public class Colonist : MonoBehaviour
             List<BodyRegion> currentPresetAffectedRegions = currentinjuryCollection.presetAffectedRegions;
             List<BodyRegion> currentRandomAffectedRegions = currentinjuryCollection.randomAffectedRegions;
             int currentDesiredRandomRegions = currentinjuryCollection.desiredRandomRegions;
+            float currentStabilizationTime = currentinjuryCollection.stabilizationTime; // Get the stabilization time for each injured region in the injury collection
 
             List<BodyRegion> newPresetAffectedRegions = new List<BodyRegion>();
 
-            if (currentPresetAffectedRegions != null)
+            if (currentPresetAffectedRegions != null) // Add preset regions
             {
                 foreach (BodyRegion currentPresetRegion in currentPresetAffectedRegions)
                 {
                     BodyRegion newPresetRegion = ScriptableObject.CreateInstance<BodyRegion>();
                     newPresetRegion.bodyRegionType = currentPresetRegion.bodyRegionType;
                     newPresetRegion.regionInjuryStatus = InjuryStatus.Injured; // Set the injury status for the preset region
-                    newPresetRegion.stabilizationTime = currentPresetRegion.stabilizationTime; // Set the stabilization time for the preset region
+                    newPresetRegion.stabilizationTime = currentStabilizationTime; // Set the stabilization time for the preset region
                     newPresetAffectedRegions.Add(newPresetRegion);
                 }
             }
@@ -73,7 +74,7 @@ public class Colonist : MonoBehaviour
                     BodyRegion randomRegion = ScriptableObject.CreateInstance<BodyRegion>();
                     randomRegion.bodyRegionType = currentRandomAffectedRegions[index].bodyRegionType;
                     randomRegion.regionInjuryStatus = InjuryStatus.Injured; // Set the injury status for the random region
-                    randomRegion.stabilizationTime = currentRandomAffectedRegions[index].stabilizationTime; // Set the stabilization time for the random region
+                    randomRegion.stabilizationTime = currentStabilizationTime; // Set the stabilization time for the random region
                     if (!newPresetAffectedRegions.Contains(randomRegion))
                     {
                         newPresetAffectedRegions.Add(randomRegion); // Add the chosen region to the preset list
@@ -97,7 +98,7 @@ public class Colonist : MonoBehaviour
                 int index = (int)region.bodyRegionType;
                 if (index >= 0 && index < newInjuryCollection.injuredBodyCollection.Length)
                 {
-                    currentTotalCollectionTime += region.stabilizationTime;
+                    currentTotalCollectionTime += currentStabilizationTime; // Add the stabilization time for each injured region to the total collection time
                     newInjuryCollection.injuredBodyCollection[index] = region; // Set the region in the full body collection to the preset region
                 }
                 else
