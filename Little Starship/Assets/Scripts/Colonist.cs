@@ -4,17 +4,14 @@ using UnityEngine;
 
 public class Colonist : MonoBehaviour
 {
-    public List<MedicalEmergency> emergencies;
-    public List<List<BodyRegion>> colonistRegions = new List<List<BodyRegion>>();
-    public List<List<float>> neededTimeForEachRegion = new List<List<float>>();
-    public List<float> neededTimeForEachEmergency = new List<float>();
-    public float neededTimeToStabilizeColonist = 0f;
-    public float totalStabilizationProgress = 0f;
-    public List<List<float>> progressOfRegions = new List<List<float>>();
-    public List<float> progressOfEmergencies = new List<float>();
-
-    public List<InjuryCollection> injuryCollectionsInput = new List<InjuryCollection>();
+    [SerializeField] private List<InjuryCollection> InitialInjuryCollections = new List<InjuryCollection>();
     public List<InjuryCollection> colonistInjuryCollections = new List<InjuryCollection>();
+
+    public List<float> neededTimeForEachInjuryCollection = new List<float>();
+    public List<float> progressOfInjuryCollections = new List<float>();
+    public float neededTimeToStabilizeColonist = 0.0f;
+    public float totalStabilizationProgress = 0.0f;
+
     public Rigidbody ColonistRigidbody { get; private set; }
 
     private void Awake()
@@ -25,10 +22,12 @@ public class Colonist : MonoBehaviour
 
     private void InitializeInjuries()
     {
-        for (int i = 0; i < injuryCollectionsInput.Count; i++)
+        for (int i = 0; i < InitialInjuryCollections.Count; i++)
         {
-            InjuryCollection currentinjuryCollection = injuryCollectionsInput[i];
+            InjuryCollection currentinjuryCollection = InitialInjuryCollections[i];
             InjuryCollection newInjuryCollection = ScriptableObject.CreateInstance<InjuryCollection>();
+
+            float currentTotalCollectionTime = 0.0f;
 
             if (currentinjuryCollection == null)
             {
@@ -39,7 +38,6 @@ public class Colonist : MonoBehaviour
             List<BodyRegion> currentPresetAffectedRegions = currentinjuryCollection.presetAffectedRegions;
             List<BodyRegion> currentRandomAffectedRegions = currentinjuryCollection.randomAffectedRegions;
             int currentDesiredRandomRegions = currentinjuryCollection.desiredRandomRegions;
-            float currentStabilizationTime = currentinjuryCollection.stabilizationTime;
 
             List<BodyRegion> newPresetAffectedRegions = new List<BodyRegion>();
 
@@ -50,7 +48,7 @@ public class Colonist : MonoBehaviour
                     BodyRegion newPresetRegion = ScriptableObject.CreateInstance<BodyRegion>();
                     newPresetRegion.bodyRegionType = currentPresetRegion.bodyRegionType;
                     newPresetRegion.regionInjuryStatus = InjuryStatus.Injured; // Set the injury status for the preset region
-                    newPresetRegion.stabilizationTime = currentStabilizationTime; // Set the stabilization time for the preset region
+                    newPresetRegion.stabilizationTime = currentPresetRegion.stabilizationTime; // Set the stabilization time for the preset region
                     newPresetAffectedRegions.Add(newPresetRegion);
                 }
             }
@@ -75,7 +73,7 @@ public class Colonist : MonoBehaviour
                     BodyRegion randomRegion = ScriptableObject.CreateInstance<BodyRegion>();
                     randomRegion.bodyRegionType = currentRandomAffectedRegions[index].bodyRegionType;
                     randomRegion.regionInjuryStatus = InjuryStatus.Injured; // Set the injury status for the random region
-                    randomRegion.stabilizationTime = currentStabilizationTime; // Set the stabilization time for the random region
+                    randomRegion.stabilizationTime = currentRandomAffectedRegions[index].stabilizationTime; // Set the stabilization time for the random region
                     if (!newPresetAffectedRegions.Contains(randomRegion))
                     {
                         newPresetAffectedRegions.Add(randomRegion); // Add the chosen region to the preset list
@@ -99,6 +97,7 @@ public class Colonist : MonoBehaviour
                 int index = (int)region.bodyRegionType;
                 if (index >= 0 && index < newInjuryCollection.injuredBodyCollection.Length)
                 {
+                    currentTotalCollectionTime += region.stabilizationTime;
                     newInjuryCollection.injuredBodyCollection[index] = region; // Set the region in the full body collection to the preset region
                 }
                 else
@@ -107,7 +106,10 @@ public class Colonist : MonoBehaviour
                 }
             }
 
+            neededTimeForEachInjuryCollection.Add(currentTotalCollectionTime);
+            newInjuryCollection.displayedName = currentinjuryCollection.displayedName;
             colonistInjuryCollections.Add(newInjuryCollection);
+            progressOfInjuryCollections.Add(0.0f);
         }
     }
 

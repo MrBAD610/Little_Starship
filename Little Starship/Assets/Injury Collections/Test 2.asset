@@ -26,7 +26,6 @@ MonoBehaviour:
   presetAffectedRegions:
   - {fileID: 11400000, guid: c74f41c460c3df749b76f8ce5448e8e8, type: 2}
   - {fileID: 11400000, guid: 72c798e6db4ae784bb661878f467e858, type: 2}
-  - {fileID: 11400000, guid: 5cc5d6c5a98e9be419348823fb4a6744, type: 2}
   randomAffectedRegions:
   - {fileID: 11400000, guid: c74f41c460c3df749b76f8ce5448e8e8, type: 2}
   - {fileID: 11400000, guid: 693d51c619549024b828584ca44c4d7e, type: 2}
@@ -39,3 +38,5 @@ MonoBehaviour:
   - {fileID: 11400000, guid: a155680d5a77fa545a952745a3760e79, type: 2}
   desiredRandomRegions: 1
   stabilizationTime: 3
+  totalStabilizationTime: 54
+  totalStabilizationProgress: 0

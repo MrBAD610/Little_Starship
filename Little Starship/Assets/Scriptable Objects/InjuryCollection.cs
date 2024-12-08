@@ -10,7 +10,7 @@ public class InjuryCollection : ScriptableObject
     public List<BodyRegion> presetAffectedRegions; // List of preset regions affected by the medical emergency
     public List<BodyRegion> randomAffectedRegions; // List of possible regions affected by the medical emergency
     public int desiredRandomRegions; // Number of random regions needed
-    public float stabilizationTime; // Time to stabilize all regions in this injury collection
+    public float stabilizationTime = 0.0f; // Time to stabilize one region in this injury collection
 
     // Called when the script is loaded or a value changes in the inspector
     private void OnEnable()
@@ -49,7 +49,8 @@ public class InjuryCollection : ScriptableObject
             BodyRegion newRegion = ScriptableObject.CreateInstance<BodyRegion>();
             newRegion.bodyRegionType = currentRegion.bodyRegionType;
             newRegion.regionInjuryStatus = InjuryStatus.Unharmed;
-            newRegion.stabilizationTime = 0f;
+            newRegion.stabilizationTime = stabilizationTime;
+            newRegion.stabilizationProgress = 0f;
             injuredBodyCollection[i] = newRegion;
         }
     }
