@@ -7,10 +7,13 @@ using System.Collections;
 public class EmergencyUIHandler : MonoBehaviour
 {
     [Header("Prefabs and Containers")]
-    [SerializeField] private Transform emergencyContainer;    // Parent container for injury collections
-    [SerializeField] private GameObject emergencyPrefab; // Prefab for injury collections
-
+    [SerializeField] private Transform EmergencyContainer;    // Parent container for injury collections
+    [SerializeField] private GameObject EmergencyPrefab; // Prefab for injury collections
     [SerializeField] private GameObject TransmitButtonPrefab;      // Button for transmitting stabilized colonist
+
+    [SerializeField] private ColonistDiagramUIHandler ColonistDiagramUIHandler;
+
+    private List<InjuryCollection> injuryCollections;
 
     private List<GameObject> emergencyItems = new List<GameObject>();
     private List<float> emergencyProgressionTimes = new List<float>();
@@ -26,9 +29,6 @@ public class EmergencyUIHandler : MonoBehaviour
 
     private CircularProgressBar progressingEmergency;
 
-    private enum NavigationState { Emergency }
-    private NavigationState currentState = NavigationState.Emergency;
-
     private void Start()
     {
         if (TransmitButtonPrefab == null)
@@ -36,7 +36,7 @@ public class EmergencyUIHandler : MonoBehaviour
             Debug.LogError("TransmitButtonPrefab not found on EmergencyUIHandler.");
         }
 
-        if (emergencyPrefab == null || emergencyContainer == null)
+        if (EmergencyPrefab == null || EmergencyContainer == null)
         {
             Debug.LogError("EmergencyUIHandler is missing a prefab or container reference.");
         }
@@ -72,7 +72,7 @@ public class EmergencyUIHandler : MonoBehaviour
     {
         Colonist currentColonist = colonistInput;
 
-        List<InjuryCollection> injuryCollections = currentColonist.colonistInjuryCollections;
+        injuryCollections = currentColonist.colonistInjuryCollections;
         var colonistInjuryCollectionStabilizationTimes = currentColonist.neededTimeForEachInjuryCollection;
         var colonistInjuryCollectionProgressTimes = currentColonist.progressOfInjuryCollections;
 
@@ -102,7 +102,7 @@ public class EmergencyUIHandler : MonoBehaviour
         for (int i = 0; i < injuryCollections.Count; i++)
         {
             // Create Injury Collection Entry
-            var emergencyItem = Instantiate(emergencyPrefab, emergencyContainer);
+            var emergencyItem = Instantiate(EmergencyPrefab, EmergencyContainer);
 
             var emergencyText = emergencyItem.GetComponentInChildren<TextMeshProUGUI>();
             emergencyText.text = injuryCollections[i].displayedName;
@@ -117,7 +117,7 @@ public class EmergencyUIHandler : MonoBehaviour
             emergencyItems.Add(emergencyItem);
         }
 
-        HighlightEmergency(0);
+        HighlightSelectedInjuryCollection(0);
     }
 
     public void PerformSelection()
@@ -148,7 +148,7 @@ public class EmergencyUIHandler : MonoBehaviour
         StartCoroutine(TrackingEmergencyProgress());
     }
 
-    public void HighlightEmergency(int emergencyIndex)
+    public void HighlightSelectedInjuryCollection(int emergencyIndex)
     {
         if (emergencyIndex < 0 || emergencyIndex >= emergencyItems.Count)
         {
@@ -158,9 +158,9 @@ public class EmergencyUIHandler : MonoBehaviour
 
         ResetHighlights();
         selectedEmergencyIndex = emergencyIndex;
-
         var emergencyItem = emergencyItems[emergencyIndex];
         emergencyItem.GetComponent<Image>().color = Color.yellow;
+
         Debug.Log($"Highlighted Emergency at index {emergencyIndex} between range (0) - ({emergencyItems.Count - 1})");
     }
 
@@ -173,17 +173,15 @@ public class EmergencyUIHandler : MonoBehaviour
         }
         int newIndex = (selectedEmergencyIndex + direction + emergencyItems.Count) % emergencyItems.Count;
 
-        if (currentState == NavigationState.Emergency) // Scrolling through emergencies
+        if (selectedEmergencyIndex < 0 || selectedEmergencyIndex >= emergencyItems.Count)
         {
-            if (selectedEmergencyIndex < 0 || selectedEmergencyIndex >= emergencyItems.Count)
-            {
-                Debug.LogWarning($"Scroll failed: {newIndex} is an invalid emergency index to scroll to.");
-                return;
-            }
-
-            Debug.Log($"Selected Emeregency at index {newIndex}");
-            HighlightEmergency(newIndex);
+            Debug.LogWarning($"Scroll failed: {newIndex} is an invalid emergency index to scroll to.");
+            return;
         }
+
+        Debug.Log($"Selected Emeregency at index {newIndex}");
+        HighlightSelectedInjuryCollection(newIndex);
+
     }
 
     public void ClearDisplay()
@@ -252,7 +250,6 @@ public class EmergencyUIHandler : MonoBehaviour
         }
 
         progressingEmergencyIndex = -1;  // reset progressingEmergencyIndex
-        currentState = NavigationState.Emergency;
     }
 
     private IEnumerator TrackingEmergencyProgress()
