@@ -59,16 +59,16 @@ public class ColonistDiagramUIHandler : MonoBehaviour
                 continue;
             }
 
-            if (allRegionImages == null || allRegionImages.Length <= (int)region.regionType)
+            if (allRegionImages == null || allRegionImages.Length <= (int)region.bodyRegionType)
             {
                 Debug.LogError("All region images array is not properly initialized or index is out of range.");
                 continue;
             }
 
-            switch (region.regionStatus)
+            switch (region.regionInjuryStatus)
             {
                 case InjuryStatus.Unharmed:
-                    allRegionImages[(int)region.regionType].color = nullColor;
+                    allRegionImages[(int)region.bodyRegionType].color = nullColor;
                     break;
             }
         }

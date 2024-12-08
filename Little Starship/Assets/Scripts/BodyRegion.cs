@@ -1,9 +1,17 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class BodyRegion : MonoBehaviour
+/// <summary>
+/// Represents a region of the body.
+/// </summary>
+[CreateAssetMenu(fileName = "New Body Region", menuName = "Body Region")]
+public class BodyRegion : ScriptableObject
 {
+    /// <summary>
+    /// Types of body regions.
+    /// </summary>
     public enum RegionType
     {
         Head,       // the head
@@ -17,12 +25,28 @@ public class BodyRegion : MonoBehaviour
         Right_Leg   // the right leg
     }
 
-    public RegionType regionType;
-    public InjuryStatus regionStatus;
-    public float stabilizationTime;
-    public float stabilizationSpeed;
-    public float stabilizationProgress;
+    /// <summary>
+    /// The type of the body region.
+    /// </summary>
+    public RegionType bodyRegionType = RegionType.Head;
 
-    private void Awake() { }
-    private void Update() { }
+    /// <summary>
+    /// The injury status of the body region.
+    /// </summary>
+    public InjuryStatus regionInjuryStatus = InjuryStatus.Unharmed;
+
+    /// <summary>
+    /// The stabilization time for the body region.
+    /// </summary>
+    public float stabilizationTime = 0.0f;
+
+    /// <summary>
+    /// The stabilization speed for the body region.
+    /// </summary>
+    public float stabilizationSpeed = 0.0f;
+
+    /// <summary>
+    /// The stabilization progress for the body region.
+    /// </summary>
+    public float stabilizationProgress = 0.0f;
 }

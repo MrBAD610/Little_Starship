@@ -38,7 +38,9 @@ public class InjuryCollection : ScriptableObject
 
         for (int i = 0; i < regionTypes.Length; i++)
         {
-            fullBodyCollection[i] = new BodyRegion { regionType = regionTypes[i] };
+            BodyRegion bodyRegion = ScriptableObject.CreateInstance<BodyRegion>();
+            bodyRegion.bodyRegionType = regionTypes[i];
+            fullBodyCollection[i] = bodyRegion;
         }
     }
 
@@ -56,36 +58,7 @@ public class InjuryCollection : ScriptableObject
 
         foreach (BodyRegion region in presetAffectedRegions) // Loop through the preset regions
         {
-            switch (region.regionType) // Switch on the region type of the preset region
-            {
-                case BodyRegion.RegionType.Head: // If the region is the head
-                    fullBodyCollection[(int)BodyRegion.RegionType.Head] = region; // Set the head region in the full body collection to the preset region
-                    break;
-                case BodyRegion.RegionType.Neck: // If the region is the neck
-                    fullBodyCollection[(int)BodyRegion.RegionType.Neck] = region; // Set the neck region in the full body collection to the preset region
-                    break;
-                case BodyRegion.RegionType.Chest: // If the region is the chest
-                    fullBodyCollection[(int)BodyRegion.RegionType.Chest] = region; // Set the chest region in the full body collection to the preset region
-                    break;
-                case BodyRegion.RegionType.Left_Arm: // If the region is the left arm
-                    fullBodyCollection[(int)BodyRegion.RegionType.Left_Arm] = region; // Set the left arm region in the full body collection to the preset region
-                    break;
-                case BodyRegion.RegionType.Right_Arm: // If the region is the right arm
-                    fullBodyCollection[(int)BodyRegion.RegionType.Right_Arm] = region; // Set the right arm region in the full body collection to the preset region
-                    break;
-                case BodyRegion.RegionType.Midsection: // If the region is the midsection
-                    fullBodyCollection[(int)BodyRegion.RegionType.Midsection] = region; // Set the midsection region in the full body collection to the preset region
-                    break;
-                case BodyRegion.RegionType.Pelvis: // If the region is the pelvis
-                    fullBodyCollection[(int)BodyRegion.RegionType.Pelvis] = region; // Set the pelvis region in the full body collection to the preset region
-                    break;
-                case BodyRegion.RegionType.Left_Leg: // If the region is the left leg
-                    fullBodyCollection[(int)BodyRegion.RegionType.Left_Leg] = region; // Set the left leg region in the full body collection to the preset region
-                    break;
-                case BodyRegion.RegionType.Right_Leg: // If the region is the right leg
-                    fullBodyCollection[(int)BodyRegion.RegionType.Right_Leg] = region; // Set the right leg region in the full body collection to the preset region
-                    break;
-            }
+            fullBodyCollection[(int)region.bodyRegionType] = region; // Set the region in the full body collection to the preset region
         }
     }
 
@@ -116,7 +89,7 @@ public class InjuryCollection : ScriptableObject
     {
         foreach (BodyRegion region in fullBodyCollection)
         {
-            Debug.Log($"{region.regionType}: {region.regionStatus}, {region.stabilizationTime}");
+            Debug.Log($"{region.bodyRegionType}: {region.regionInjuryStatus}, {region.stabilizationTime}");
         }
     }
 }
