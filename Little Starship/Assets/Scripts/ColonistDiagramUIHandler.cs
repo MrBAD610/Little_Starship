@@ -45,13 +45,13 @@ public class ColonistDiagramUIHandler : MonoBehaviour
 
         var currentInjuryCollection = injuryCollection[0];
 
-        if (currentInjuryCollection == null || currentInjuryCollection.fullBodyCollection == null)
+        if (currentInjuryCollection == null || currentInjuryCollection.injuredBodyCollection == null)
         {
             Debug.LogError("Full body collection is null.");
             return;
         }
 
-        foreach (var region in currentInjuryCollection.fullBodyCollection)
+        foreach (var region in currentInjuryCollection.injuredBodyCollection)
         {
             if (region == null)
             {
