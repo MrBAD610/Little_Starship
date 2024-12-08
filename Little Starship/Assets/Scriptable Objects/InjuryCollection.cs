@@ -7,56 +7,52 @@ public class InjuryCollection : ScriptableObject
 {
     public string displayedName;    // What will be displayed in the UI
     public BodyRegion[] fullBodyCollection; // Array to hold all body regions
-    public List<BodyRegion> presetAffectedRegions; // list of preset regions affected by the medical emergency
-    public List<BodyRegion> randomAffectedRegions; // list of possible regions affected by the medical emergency
+    public List<BodyRegion> presetAffectedRegions; // List of preset regions affected by the medical emergency
+    public List<BodyRegion> randomAffectedRegions; // List of possible regions affected by the medical emergency
     public int desiredRandomRegions; // Number of random regions needed
     public float stabilizationTime; // Time to stabilize all regions in this injury collection
 
-    // Awake is called when the script instance is being loaded
-    private void Awake()
+    // Called when the script is loaded or a value changes in the inspector
+    private void OnEnable()
     {
         InitializeFullBodyCollection(); // Initialize the full body collection
-        InitializeInjuredRegions(); // Initialize the injured regions on Awake
-    }
-
-    // Start is called before the first frame update
-    void Start()
-    {
-        DebugFullBodyCollection(); // Debug the full body collection
-    }
-
-    // Update is called once per frame
-    void Update()
-    {
-
+        InitializeInjuredRegions();     // Initialize the injured regions
     }
 
     private void InitializeFullBodyCollection()
     {
-        BodyRegion.RegionType[] regionTypes = (BodyRegion.RegionType[])System.Enum.GetValues(typeof(BodyRegion.RegionType));
-        fullBodyCollection = new BodyRegion[regionTypes.Length];
+        // Load all BodyRegion ScriptableObjects from the Resources/BodyRegions folder
+        BodyRegion[] bodyRegions = Resources.LoadAll<BodyRegion>("BodyRegions");
 
-        for (int i = 0; i < regionTypes.Length; i++)
+        // Use a dictionary to ensure unique RegionType entries
+        Dictionary<BodyRegion.RegionType, BodyRegion> uniqueBodyRegions = new Dictionary<BodyRegion.RegionType, BodyRegion>();
+
+        foreach (BodyRegion bodyRegion in bodyRegions)
         {
-            BodyRegion bodyRegion = ScriptableObject.CreateInstance<BodyRegion>();
-            bodyRegion.bodyRegionType = regionTypes[i];
-            fullBodyCollection[i] = bodyRegion;
+            if (!uniqueBodyRegions.ContainsKey(bodyRegion.bodyRegionType))
+            {
+                uniqueBodyRegions.Add(bodyRegion.bodyRegionType, bodyRegion);
+            }
         }
+
+        // Initialize the fullBodyCollection array with the unique BodyRegion instances
+        fullBodyCollection = new BodyRegion[uniqueBodyRegions.Count];
+        uniqueBodyRegions.Values.CopyTo(fullBodyCollection, 0);
     }
 
-    private void InitializeInjuredRegions() // Initialize the injured regions
+    private void InitializeInjuredRegions()
     {
-        if (presetAffectedRegions != null && presetAffectedRegions.Count > 0) // Check if there are preset regions
+        if (presetAffectedRegions == null)
         {
-            return; // If there are preset regions, return
+            presetAffectedRegions = new List<BodyRegion>();
         }
 
-        if (randomAffectedRegions != null && randomAffectedRegions.Count > 0) // Check if there are random regions
+        if (presetAffectedRegions.Count == 0 && randomAffectedRegions != null && randomAffectedRegions.Count > 0)
         {
-            ChooseFromRandomRegions(); // If there are random regions, choose from them and add to the preset list
+            ChooseFromRandomRegions(); // Choose from random regions and add to the preset list
         }
 
-        foreach (BodyRegion region in presetAffectedRegions) // Loop through the preset regions
+        foreach (BodyRegion region in presetAffectedRegions)
         {
             fullBodyCollection[(int)region.bodyRegionType] = region; // Set the region in the full body collection to the preset region
         }
@@ -64,32 +60,26 @@ public class InjuryCollection : ScriptableObject
 
     private void ChooseFromRandomRegions()
     {
-        HashSet<int> selectedIndices = new HashSet<int>(); // Use a hash set to ensure unique indices
+        if (presetAffectedRegions == null)
+        {
+            presetAffectedRegions = new List<BodyRegion>();
+        }
 
-        while (selectedIndices.Count < desiredRandomRegions && selectedIndices.Count < randomAffectedRegions.Count) // Loop until the desired number of regions are chosen
+        HashSet<int> selectedIndices = new HashSet<int>(); // Ensure unique indices
+
+        while (selectedIndices.Count < desiredRandomRegions && selectedIndices.Count < randomAffectedRegions.Count)
         {
             int randomIndex = Random.Range(0, randomAffectedRegions.Count); // Choose a random index
-            selectedIndices.Add(randomIndex); // Add the index to the hash set
+            selectedIndices.Add(randomIndex);
         }
 
-        foreach (int index in selectedIndices) // Loop through the selected indices
+        foreach (int index in selectedIndices)
         {
-            if (presetAffectedRegions.Contains(randomAffectedRegions[index])) // Check if the chosen region is already in the preset list
+            BodyRegion randomRegion = randomAffectedRegions[index];
+            if (!presetAffectedRegions.Contains(randomRegion))
             {
-                continue; // Skip if the region is already in the preset list
+                presetAffectedRegions.Add(randomRegion); // Add the chosen region to the preset list
             }
-            else // If the region is not in the preset list
-            {
-                presetAffectedRegions.Add(randomAffectedRegions[index]); // Add the chosen regions to the emergency's preset list
-            }
-        }
-    }
-
-    private void DebugFullBodyCollection()
-    {
-        foreach (BodyRegion region in fullBodyCollection)
-        {
-            Debug.Log($"{region.bodyRegionType}: {region.regionInjuryStatus}, {region.stabilizationTime}");
         }
     }
 }

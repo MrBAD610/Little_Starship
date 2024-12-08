@@ -70,6 +70,12 @@ public class ColonistDiagramUIHandler : MonoBehaviour
                 case InjuryStatus.Unharmed:
                     allRegionImages[(int)region.bodyRegionType].color = nullColor;
                     break;
+                case InjuryStatus.Injured:
+                    allRegionImages[(int)region.bodyRegionType].color = Color.Lerp(lowStatusColor, fullStatusColor, region.stabilizationProgress / region.stabilizationTime);
+                    break;
+                case InjuryStatus.Stabilized:
+                    allRegionImages[(int)region.bodyRegionType].color = completeColor;
+                    break;
             }
         }
     }
