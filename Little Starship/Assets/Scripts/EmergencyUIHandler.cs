@@ -18,6 +18,7 @@ public class EmergencyUIHandler : MonoBehaviour
 
     private List<GameObject> injuryCollectionReadoutItems = new List<GameObject>();
     private List<float> injuryCollectionProgressTimes = new List<float>();
+    private List<Button> injuryCollectionButtons = new List<Button>();
 
     private Button TransmitButton;
 
@@ -99,7 +100,23 @@ public class EmergencyUIHandler : MonoBehaviour
             }
 
             injuryCollectionReadoutItems.Add(injuryCollectionItem);
+            var button = injuryCollectionItem.GetComponent<Button>();
+            injuryCollectionButtons.Add(button);
+
+            // Add listener to the button
+            int index = i; // Capture the current index
+            button.onClick.AddListener(() => OnInjuryCollectionButtonClicked(index));
         }
+    }
+
+    private void OnInjuryCollectionButtonClicked(int index)
+    {
+        Debug.Log($"Button {index} clicked.");
+        
+        ColonistDiagramUIHandler.displayedInjuryCollection = injuryCollections[index];
+        ColonistDiagramUIHandler.SetDisplay();
+
+        selectedInjuryCollectionIndex = index;
     }
 
     public void MakeProgress()
