@@ -100,8 +100,6 @@ public class EmergencyUIHandler : MonoBehaviour
 
             injuryCollectionReadoutItems.Add(injuryCollectionItem);
         }
-
-        HighlightSelectedInjuryCollection(0);
     }
 
     public void MakeProgress()
@@ -112,44 +110,6 @@ public class EmergencyUIHandler : MonoBehaviour
             return;
         }
         progressingInjuryCollectionIndex = selectedInjuryCollectionIndex;
-    }
-
-    public void HighlightSelectedInjuryCollection(int injuryCollectionIndex)
-    {
-        if (injuryCollectionIndex < 0 || injuryCollectionIndex >= injuryCollectionReadoutItems.Count)
-        {
-            Debug.LogWarning($"Can't highlight Injury Collection at index {injuryCollectionIndex} since it is out of range (0) - ({injuryCollectionReadoutItems.Count - 1})");
-            return;
-        }
-
-        ResetHighlights();
-        selectedInjuryCollectionIndex = injuryCollectionIndex;
-        var injuryCollectionItem = injuryCollectionReadoutItems[injuryCollectionIndex];
-        ColonistDiagramUIHandler.displayedInjuryCollection = injuryCollections[injuryCollectionIndex];
-        ColonistDiagramUIHandler.SetDisplay();
-        injuryCollectionItem.GetComponent<Image>().color = Color.yellow;
-
-        Debug.Log($"Highlighted Injury Collection at index {injuryCollectionIndex} between range (0) - ({injuryCollectionReadoutItems.Count - 1})");
-    }
-
-    public void Scroll(int direction)
-    {
-        if (injuryCollectionReadoutItems.Count == 0) // Check so no divide by zero
-        {
-            Debug.LogWarning($"Cannot divide to find new index since there are {injuryCollectionReadoutItems.Count} injury collections");
-            return;
-        }
-        int newIndex = (selectedInjuryCollectionIndex + direction + injuryCollectionReadoutItems.Count) % injuryCollectionReadoutItems.Count;
-
-        if (selectedInjuryCollectionIndex < 0 || selectedInjuryCollectionIndex >= injuryCollectionReadoutItems.Count)
-        {
-            Debug.LogWarning($"Scroll failed: {newIndex} is an invalid injury collection index to scroll to.");
-            return;
-        }
-
-        Debug.Log($"Selected Injury Collection at index {newIndex}");
-        HighlightSelectedInjuryCollection(newIndex);
-
     }
 
     public void ClearDisplay()
@@ -187,18 +147,6 @@ public class EmergencyUIHandler : MonoBehaviour
         newColonist.totalStabilizationProgress = injuryCollectionProgressTimes.Sum();
 
         return newColonist;
-    }
-
-    private void ResetHighlights()
-    {
-        foreach (var injuryCollection in injuryCollectionReadoutItems)
-        {
-            var image = injuryCollection.GetComponent<Image>();
-            if (image != null)
-            {
-                image.color = Color.white; // Reset to default
-            }
-        }
     }
 
     private void ClearList()

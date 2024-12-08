@@ -133,15 +133,15 @@ public class PlayerController : MonoBehaviour
             {
                 if (scrollInput > 0f) // scroll up to next medical emergency/body region
                 {
-                    emergencyUIHandler.Scroll(-1);
+                    //emergencyUIHandler.Scroll(-1);
                     timeOfLastScroll = Time.time;
-                    //Debug.Log($"Scrolled up at {timeOfLastCycle}");
+                    Debug.Log($"Scrolled up at {timeOfLastCycle}");
                 }
                 else if (scrollInput < 0f) // scroll down to next medical emergency/body region
                 {
-                    emergencyUIHandler.Scroll(1);
+                    //emergencyUIHandler.Scroll(1);
                     timeOfLastScroll = Time.time;
-                    //Debug.Log($"Scrolled down at {timeOfLastCycle}");
+                    Debug.Log($"Scrolled down at {timeOfLastCycle}");
                 }
             }
 
