@@ -22,7 +22,7 @@ public class InjuryCollection : ScriptableObject
     private void InitializeFullBodyCollection()
     {
         // Load all BodyRegion ScriptableObjects from the Resources/BodyRegions folder
-        BodyRegion[] bodyRegions = Resources.LoadAll<BodyRegion>("BodyRegions");
+        BodyRegion[] bodyRegions = Resources.LoadAll<BodyRegion>("Body Regions");
 
         // Use a dictionary to ensure unique RegionType entries
         Dictionary<BodyRegion.RegionType, BodyRegion> uniqueBodyRegions = new Dictionary<BodyRegion.RegionType, BodyRegion>();
