@@ -5,55 +5,69 @@ using UnityEngine.UI;
 
 public class ColonistDiagramUIHandler : MonoBehaviour
 {
+    public List<InjuryCollection> injuryCollection = new List<InjuryCollection>();
+
     [Header("Body Region Images")]
-    [SerializeField] private Image headImage;
-    [SerializeField] private Image neckImage;
-    [SerializeField] private Image chestImage;
-    [SerializeField] private Image rightArmImage;
-    [SerializeField] private Image leftArmImage;
-    [SerializeField] private Image midsectionImage;
-    [SerializeField] private Image pelvisImage;
-    [SerializeField] private Image rightLegImage;
-    [SerializeField] private Image leftLegImage;
+    public Image[] allRegionImages = new Image[System.Enum.GetNames(typeof(BodyRegion.RegionType)).Length];
 
-    private Sprite headSprite;
-    private Sprite neckSprite;
-    private Sprite chestSprite;
-    private Sprite rightArmSprite;
-    private Sprite leftArmSprite;
-    private Sprite midsectionSprite;
-    private Sprite pelvisSprite;
-    private Sprite rightLegSprite;
-    private Sprite leftLegSprite;
+    private Sprite[] allRegionSprites = new Sprite[System.Enum.GetNames(typeof(BodyRegion.RegionType)).Length];
 
+    [Header("Body Region Colors")]
+    [SerializeField] private Color fullStatusColor = new Color(0.0f, 1.0f, 1.0f, 1.0f);
+    [SerializeField] private Color lowStatusColor = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+    [SerializeField] private Color completeColor = Color.green;
+    [SerializeField] private Color nullColor = new Color(1.0f, 1.0f, 1.0f, 0.2f);
 
-    // Start is called before the first frame update
     void Start()
     {
-        InitializeBodyRegionSprites(); // Initialize the sprites for each body region
+        InitializeRegionSprites();
+        SetDisplay();
     }
 
-    // Update is called once per frame
-    void Update()
+    private void InitializeRegionSprites()
     {
-        
+        for (int i = 0; i < allRegionSprites.Length; i++)
+        {
+            allRegionSprites[i] = allRegionImages[i]?.sprite;
+        }
     }
 
-    private void InitializeBodyRegionSprites()
+    private void SetDisplay()
     {
-        headSprite = headImage.sprite;
-        neckSprite = neckImage.sprite;
-        chestSprite = chestImage.sprite;
-        rightArmSprite = rightArmImage.sprite;
-        leftArmSprite = leftArmImage.sprite;
-        midsectionSprite = midsectionImage.sprite;
-        pelvisSprite = pelvisImage.sprite;
-        rightLegSprite = rightLegImage.sprite;
-        leftLegSprite = leftLegImage.sprite;
-    }
+        if (injuryCollection == null || injuryCollection.Count == 0)
+        {
+            Debug.LogError("Injury collection is null or empty.");
+            return;
+        }
 
-    private void SetDisplay() // Set the display of the body regions based on the colonist's injuries
-    {
-        
+        var currentInjuryCollection = injuryCollection[0];
+
+        if (currentInjuryCollection?.fullBodyCollection == null)
+        {
+            Debug.LogError("Full body collection is null.");
+            return;
+        }
+
+        foreach (var region in currentInjuryCollection.fullBodyCollection)
+        {
+            if (region == null)
+            {
+                Debug.LogError("Body region is null.");
+                continue;
+            }
+
+            if (allRegionImages == null || allRegionImages.Length <= (int)region.regionType)
+            {
+                Debug.LogError("All region images array is not properly initialized or index is out of range.");
+                continue;
+            }
+
+            switch (region.regionStatus)
+            {
+                case InjuryStatus.Unharmed:
+                    allRegionImages[(int)region.regionType].color = nullColor;
+                    break;
+            }
+        }
     }
 }

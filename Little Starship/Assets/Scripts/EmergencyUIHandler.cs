@@ -153,7 +153,7 @@ public class EmergencyUIHandler : MonoBehaviour
                 GameObject regionItem = Instantiate(regionPrefab, regionPlaceholder.transform);
 
                 var regionText = regionItem.GetComponentInChildren<TextMeshProUGUI>();
-                regionText.text = regions[i][j].ToString();
+                regionText.text = regions[i][j].regionStatus.ToString();
 
                 var regionProgressBar = regionItem.GetComponentInChildren<CircularProgressBar>();
                 if (regionProgressBar != null && i < colonistRegionStabilizationTimes.Count && j < colonistRegionStabilizationTimes[i].Count && i < colonistRegionProgressTimes.Count && j < colonistRegionProgressTimes[i].Count)
