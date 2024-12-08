@@ -5,7 +5,7 @@ using UnityEngine.UI;
 
 public class ColonistDiagramUIHandler : MonoBehaviour
 {
-    public List<InjuryCollection> injuryCollection = new List<InjuryCollection>();
+    public InjuryCollection displayedInjuryCollection;
 
     [Header("Body Region Images")]
     public Image[] allRegionImages = new Image[System.Enum.GetNames(typeof(BodyRegion.RegionType)).Length];
@@ -18,18 +18,24 @@ public class ColonistDiagramUIHandler : MonoBehaviour
     [SerializeField] private Color completeColor = Color.green;
     [SerializeField] private Color nullColor = new Color(1.0f, 1.0f, 1.0f, 0.2f);
 
+    private void Awake()
+    {
+        displayedInjuryCollection = ScriptableObject.CreateInstance<InjuryCollection>();
+    }
+
     void Start()
     {
-        InitializeRegionSprites();
+        InitializeRegionImagesAndSprites();
         SetDisplay();
     }
 
-    private void InitializeRegionSprites()
+    private void InitializeRegionImagesAndSprites()
     {
         for (int i = 0; i < allRegionSprites.Length; i++)
         {
             if (allRegionImages[i] != null)
             {
+                allRegionImages[i].color = nullColor;
                 allRegionSprites[i] = allRegionImages[i].sprite;
             }
         }
@@ -37,21 +43,19 @@ public class ColonistDiagramUIHandler : MonoBehaviour
 
     private void SetDisplay()
     {
-        if (injuryCollection == null || injuryCollection.Count == 0)
+        if (displayedInjuryCollection == null)
         {
-            Debug.LogError("Injury collection is null or empty.");
+            Debug.Log("Injury collection is null or empty.");
             return;
         }
 
-        var currentInjuryCollection = injuryCollection[0];
-
-        if (currentInjuryCollection == null || currentInjuryCollection.injuredBodyCollection == null)
+        if (displayedInjuryCollection == null || displayedInjuryCollection.injuredBodyCollection == null)
         {
             Debug.LogError("Full body collection is null.");
             return;
         }
 
-        foreach (var region in currentInjuryCollection.injuredBodyCollection)
+        foreach (var region in displayedInjuryCollection.injuredBodyCollection)
         {
             if (region == null)
             {
