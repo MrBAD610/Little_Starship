@@ -86,7 +86,7 @@ public class InjuryCollection : ScriptableObject
             {
                 totalStabilized++;
             }
-            if (region.regionInjuryStatus != InjuryStatus.Injured)
+            if (region.regionInjuryStatus != InjuryStatus.Unharmed)
             {
                 totalInjured++;
             }
