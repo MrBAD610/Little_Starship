@@ -159,6 +159,8 @@ public class EmergencyUIHandler : MonoBehaviour
         ResetHighlights();
         selectedEmergencyIndex = emergencyIndex;
         var emergencyItem = emergencyItems[emergencyIndex];
+        ColonistDiagramUIHandler.displayedInjuryCollection = injuryCollections[emergencyIndex];
+        ColonistDiagramUIHandler.SetDisplay();
         emergencyItem.GetComponent<Image>().color = Color.yellow;
 
         Debug.Log($"Highlighted Emergency at index {emergencyIndex} between range (0) - ({emergencyItems.Count - 1})");
@@ -242,6 +244,10 @@ public class EmergencyUIHandler : MonoBehaviour
 
         emergencyProgressBars.Clear();
         emergencyProgressionTimes = new List<float>();
+
+        InjuryCollection emptyInjuryCollection = ScriptableObject.CreateInstance<InjuryCollection>();
+        ColonistDiagramUIHandler.displayedInjuryCollection = emptyInjuryCollection;
+        ColonistDiagramUIHandler.SetDisplay();
 
         if (totalProgressBar != null)
         {

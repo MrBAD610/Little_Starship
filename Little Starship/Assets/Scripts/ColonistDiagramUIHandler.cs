@@ -41,7 +41,7 @@ public class ColonistDiagramUIHandler : MonoBehaviour
         }
     }
 
-    private void SetDisplay()
+    public void SetDisplay()
     {
         if (displayedInjuryCollection == null)
         {
