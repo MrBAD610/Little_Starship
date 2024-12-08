@@ -21,23 +21,24 @@ public class InjuryCollection : ScriptableObject
 
     private void InitializeFullBodyCollection()
     {
-        // Load all BodyRegion ScriptableObjects from the Resources/BodyRegions folder
+        // Get all BodyRegion ScriptableObjects from the Resources/BodyRegions folder
         BodyRegion[] bodyRegions = Resources.LoadAll<BodyRegion>("Body Regions");
 
-        // Use a dictionary to ensure unique RegionType entries
-        Dictionary<BodyRegion.RegionType, BodyRegion> uniqueBodyRegions = new Dictionary<BodyRegion.RegionType, BodyRegion>();
+        // Initialize the fullBodyCollection array with the size of the RegionType enum
+        fullBodyCollection = new BodyRegion[System.Enum.GetValues(typeof(BodyRegion.RegionType)).Length];
 
         foreach (BodyRegion bodyRegion in bodyRegions)
         {
-            if (!uniqueBodyRegions.ContainsKey(bodyRegion.bodyRegionType))
+            int index = (int)bodyRegion.bodyRegionType;
+            if (index >= 0 && index < fullBodyCollection.Length)
             {
-                uniqueBodyRegions.Add(bodyRegion.bodyRegionType, bodyRegion);
+                fullBodyCollection[index] = bodyRegion;
+            }
+            else
+            {
+                Debug.LogWarning($"Invalid body region type index: {index} for region: {bodyRegion.name}");
             }
         }
-
-        // Initialize the fullBodyCollection array with the unique BodyRegion instances
-        fullBodyCollection = new BodyRegion[uniqueBodyRegions.Count];
-        uniqueBodyRegions.Values.CopyTo(fullBodyCollection, 0);
     }
 
     private void InitializeInjuredRegions()
@@ -47,14 +48,35 @@ public class InjuryCollection : ScriptableObject
             presetAffectedRegions = new List<BodyRegion>();
         }
 
-        if (presetAffectedRegions.Count == 0 && randomAffectedRegions != null && randomAffectedRegions.Count > 0)
+        if (randomAffectedRegions != null && randomAffectedRegions.Count > 0)
         {
             ChooseFromRandomRegions(); // Choose from random regions and add to the preset list
         }
 
+        HashSet<BodyRegion.RegionType> uniqueRegionTypes = new HashSet<BodyRegion.RegionType>();
+
+        for (int i = presetAffectedRegions.Count - 1; i >= 0; i--)
+        {
+            BodyRegion region = presetAffectedRegions[i];
+            if (!uniqueRegionTypes.Add(region.bodyRegionType))
+            {
+                presetAffectedRegions.RemoveAt(i); // Remove duplicate region
+            }
+        }
+
         foreach (BodyRegion region in presetAffectedRegions)
         {
-            fullBodyCollection[(int)region.bodyRegionType] = region; // Set the region in the full body collection to the preset region
+            region.regionInjuryStatus = InjuryStatus.Injured; // Set the injury status for the preset region
+            region.stabilizationTime = stabilizationTime; // Set the stabilization time for the preset region
+            int index = (int)region.bodyRegionType;
+            if (index >= 0 && index < fullBodyCollection.Length)
+            {
+                fullBodyCollection[index] = region; // Set the region in the full body collection to the preset region
+            }
+            else
+            {
+                Debug.LogWarning($"Invalid body region type index: {index} for region: {region.name}");
+            }
         }
     }
 
@@ -66,16 +88,24 @@ public class InjuryCollection : ScriptableObject
         }
 
         HashSet<int> selectedIndices = new HashSet<int>(); // Ensure unique indices
+        HashSet<BodyRegion.RegionType> uniqueRegionTypes = new HashSet<BodyRegion.RegionType>();
 
         while (selectedIndices.Count < desiredRandomRegions && selectedIndices.Count < randomAffectedRegions.Count)
         {
             int randomIndex = Random.Range(0, randomAffectedRegions.Count); // Choose a random index
-            selectedIndices.Add(randomIndex);
+            BodyRegion randomRegion = randomAffectedRegions[randomIndex];
+
+            if (uniqueRegionTypes.Add(randomRegion.bodyRegionType))
+            {
+                selectedIndices.Add(randomIndex);
+            }
         }
 
         foreach (int index in selectedIndices)
         {
             BodyRegion randomRegion = randomAffectedRegions[index];
+            randomRegion.regionInjuryStatus = InjuryStatus.Injured; // Set the injury status for the random region
+            randomRegion.stabilizationTime = stabilizationTime; // Set the stabilization time for the random region
             if (!presetAffectedRegions.Contains(randomRegion))
             {
                 presetAffectedRegions.Add(randomRegion); // Add the chosen region to the preset list
