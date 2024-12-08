@@ -28,7 +28,10 @@ public class ColonistDiagramUIHandler : MonoBehaviour
     {
         for (int i = 0; i < allRegionSprites.Length; i++)
         {
-            allRegionSprites[i] = allRegionImages[i]?.sprite;
+            if (allRegionImages[i] != null)
+            {
+                allRegionSprites[i] = allRegionImages[i].sprite;
+            }
         }
     }
 
@@ -42,7 +45,7 @@ public class ColonistDiagramUIHandler : MonoBehaviour
 
         var currentInjuryCollection = injuryCollection[0];
 
-        if (currentInjuryCollection?.fullBodyCollection == null)
+        if (currentInjuryCollection == null || currentInjuryCollection.fullBodyCollection == null)
         {
             Debug.LogError("Full body collection is null.");
             return;
