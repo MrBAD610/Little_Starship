@@ -7,7 +7,7 @@ public class ColonistDiagramUIHandler : MonoBehaviour
 {
     private InjuryCollection displayedInjuryCollection;
 
-    [Header("Body Region Images")]
+    [Header("Body Regions")]
     public GameObject[] allRegionObjects = new GameObject[System.Enum.GetNames(typeof(BodyRegion.RegionType)).Length];
     
     private Image[] allRegionImages = new Image[System.Enum.GetNames(typeof(BodyRegion.RegionType)).Length];
@@ -19,6 +19,9 @@ public class ColonistDiagramUIHandler : MonoBehaviour
     [SerializeField] private Color lowStatusColor = new Color(1.0f, 0.0f, 0.0f, 1.0f);
     [SerializeField] private Color completeColor = Color.green;
     [SerializeField] private Color nullColor = new Color(1.0f, 1.0f, 1.0f, 0.2f);
+
+    [Header("Script Reference")]
+    [SerializeField] private EmergencyUIHandler emergencyUIHandler;
 
     private bool progressingRegion = false;
 
@@ -219,6 +222,7 @@ public class ColonistDiagramUIHandler : MonoBehaviour
         UpdateDiagramDisplay(); // Update the display
         displayedInjuryCollection.UpdateStabilizedRegionTotal(); // Update the stabilized region total
         displayedInjuryCollection.GetProgressSum(); // Update the progress sum of the injury collection
+        emergencyUIHandler.UpdateRegionTotals(); // Update the emergency UI
     }
 
 }

@@ -42,11 +42,11 @@ public class PlayerInventory : MonoBehaviour
     {
         if (slotList == null || slotList[selectedColonistIndex] == null)
         {
-            emergencyUIHandler.ClearDisplay();
+            emergencyUIHandler.ClearEmergencyUI(); // Clear the Emergency UI if no colonist is selected
             return;
         }
         Colonist selectedColonist = slotList[selectedColonistIndex];
-        emergencyUIHandler.DisplayInjuryCollections(selectedColonist); // Format emergencies for display
+        emergencyUIHandler.DisplayNewColonistCollections(selectedColonist); // Format emergencies for display
     }
 
     private void InstantiateSlots()
