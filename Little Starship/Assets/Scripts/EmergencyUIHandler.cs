@@ -24,7 +24,7 @@ public class EmergencyUIHandler : MonoBehaviour
 
     private int selectedInjuryCollectionIndex = 0;
 
-    private int progressingInjuryCollectionIndex = -1;
+    private Colonist currentColonist;
 
     private void Start()
     {
@@ -46,15 +46,9 @@ public class EmergencyUIHandler : MonoBehaviour
         }
     }
 
-    private void Update()
-    {
-        // Assuming you have some other logic to determine if the button should be interactable
-        TransmitButton.interactable = true;
-    }
-
     public void DisplayInjuryCollections(Colonist colonistInput)
     {
-        Colonist currentColonist = colonistInput;
+        currentColonist = colonistInput;
 
         injuryCollections = currentColonist.colonistInjuryCollections;
         var colonistInjuryCollectionStabilizationTimes = currentColonist.neededTimeForEachInjuryCollection;
@@ -107,26 +101,24 @@ public class EmergencyUIHandler : MonoBehaviour
             int index = i; // Capture the current index
             button.onClick.AddListener(() => OnInjuryCollectionButtonClicked(index));
         }
+
+        // Restore the previously selected injury collection index for the current colonist
+        OnInjuryCollectionButtonClicked(currentColonist.selectedInjuryCollectionIndex);
     }
 
     private void OnInjuryCollectionButtonClicked(int index)
     {
         Debug.Log($"Button {index} clicked.");
-        
-        ColonistDiagramUIHandler.displayedInjuryCollection = injuryCollections[index];
-        ColonistDiagramUIHandler.SetDisplay();
+
+        ColonistDiagramUIHandler.SetDisplayedInjuryCollection(injuryCollections[index]);
 
         selectedInjuryCollectionIndex = index;
-    }
 
-    public void MakeProgress()
-    {
-        if (selectedInjuryCollectionIndex < 0 || selectedInjuryCollectionIndex >= injuryCollectionReadoutItems.Count)
+        // Save the selected injury collection index for the current colonist
+        if (currentColonist != null)
         {
-            Debug.LogWarning($"Can't progress, selectedInjuryCollectionIndex {selectedInjuryCollectionIndex} out of range (0) - ({injuryCollectionReadoutItems.Count - 1})");
-            return;
+            currentColonist.selectedInjuryCollectionIndex = index;
         }
-        progressingInjuryCollectionIndex = selectedInjuryCollectionIndex;
     }
 
     public void ClearDisplay()
@@ -177,10 +169,6 @@ public class EmergencyUIHandler : MonoBehaviour
         injuryCollectionProgressTimes = new List<float>();
 
         InjuryCollection emptyInjuryCollection = ScriptableObject.CreateInstance<InjuryCollection>();
-        ColonistDiagramUIHandler.displayedInjuryCollection = emptyInjuryCollection;
-        ColonistDiagramUIHandler.SetDisplay();
-
-        progressingInjuryCollectionIndex = -1;  // reset progressingInjuryCollectionIndex
+        ColonistDiagramUIHandler.SetDisplayedInjuryCollection(emptyInjuryCollection);
     }
-
 }

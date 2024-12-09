@@ -115,17 +115,25 @@ public class PlayerInventory : MonoBehaviour
             Debug.Log("No room for Colonist"); // Notify player that there is no room for more colonists
             return;
         }
-        if (slotList[selectedColonistIndex] == null)
+        if (slotList[selectedColonistIndex] == null) // Check if the selected slot is empty
         {
+            if (colonist.firstPickup) // Check if this is the first time the colonist is being picked up
+            {
+                colonist.firstPickup = false; // Set firstPickup to false after the first pickup
+            }
             UpdateUISlot(selectedColonistIndex, colonist); // Update colonist slots UI to account for colonist collected
         }
-        else
+        else // Find the first empty slot and update it with the new colonist
         {
-            int firstEmptySlotIndex = slotList.FindIndex(slot => slot == null);
+            int firstEmptySlotIndex = slotList.FindIndex(slot => slot == null); // Find the first empty slot
             if (firstEmptySlotIndex == -1)
             {
                 Debug.LogError("No empty slots available.");
                 return;
+            }
+            if (colonist.firstPickup) // Check if this is the first time the colonist is being picked up
+            {
+                colonist.firstPickup = false; // Set firstPickup to false after the first pickup
             }
             UpdateUISlot(firstEmptySlotIndex, colonist);
         }

@@ -12,7 +12,12 @@ public class Colonist : MonoBehaviour
     public float neededTimeToStabilizeColonist = 0.0f;
     public float totalStabilizationProgress = 0.0f;
 
-    public Rigidbody ColonistRigidbody { get; private set; }
+    public bool firstPickup = true;
+
+    public Rigidbody ColonistRigidbody { get; set; }
+
+    // New field to store the selected injury collection index
+    public int selectedInjuryCollectionIndex = 0;
 
     private void Awake()
     {
