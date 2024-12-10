@@ -43,4 +43,10 @@ public class GameManager : MonoBehaviour
     {
         SceneManager.LoadScene(currentScene.name);
     }
+
+    public int GetTotalColonists()
+    {
+        GameObject[] colonists = GameObject.FindGameObjectsWithTag("Colonist");
+        return colonists.Length;
+    }
 }

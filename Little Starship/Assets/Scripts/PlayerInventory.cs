@@ -15,6 +15,13 @@ public class PlayerInventory : MonoBehaviour
     [SerializeField] private Sprite fullSlotSprite;
     [SerializeField] private Sprite emptySlotSprite;
 
+    [Header("Colonist Counter")]
+    [SerializeField] private TextMeshProUGUI colonistCounterText;
+    [SerializeField] GameManager gameManager;
+
+    private int intialColonistCount;
+    private int colonistCount;
+
     private int selectedColonistIndex = 0; // Tracks the currently selected colonist
     private int filledSlots = 0;
 
@@ -36,6 +43,9 @@ public class PlayerInventory : MonoBehaviour
     {
         InstantiateSlots(); // Instantiate slot list and slot UI
         UpdateEmergencyUI(); // Update UI for the initially selected slot
+        intialColonistCount = gameManager.GetTotalColonists();
+        colonistCount = 0;
+        colonistCounterText.text = ($"Colonists Transmited:\n{colonistCount}/{intialColonistCount}");
     }
 
     public void UpdateEmergencyUI()
@@ -188,10 +198,18 @@ public class PlayerInventory : MonoBehaviour
         UpdateUISlot(selectedColonistIndex, null); // Update colonist slots UI to account for colonist transmitted
         UpdateEmergencyUI(); // Update the UI for the transmitted colonist
         --filledSlots;
+        UpdateColonistCounter();
     }
 
     public int GetSelectedColonistIndex()
     {
         return selectedColonistIndex;
     }
+
+    private void UpdateColonistCounter()
+    {
+        colonistCount += 1;
+        colonistCounterText.text = ($"Colonists Transmited:\n{colonistCount}/{intialColonistCount}");
+    }
+
 }
