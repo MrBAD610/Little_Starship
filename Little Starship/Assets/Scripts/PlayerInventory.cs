@@ -210,6 +210,12 @@ public class PlayerInventory : MonoBehaviour
     {
         colonistCount += 1;
         colonistCounterText.text = ($"Colonists Transmited:\n{colonistCount}/{intialColonistCount}");
+
+        if (colonistCount == intialColonistCount)
+        {
+            colonistCounterText.color = Color.green;
+            gameManager.WinState();
+        }
     }
 
 }

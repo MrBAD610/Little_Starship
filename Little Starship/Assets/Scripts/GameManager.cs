@@ -10,7 +10,9 @@ public class GameManager : MonoBehaviour
     public Transform playerLocationReference { get; private set; }
     private PlayerHealth playerHealth;
     public Scene currentScene { get; private set; }
-    public Button reloadButton;
+    public Button gameOverReloadButton;
+    public Button gameWinReloadButton;
+    public Button quitButton;
 
     private void Awake()
     {
@@ -18,29 +20,27 @@ public class GameManager : MonoBehaviour
         playerLocationReference = playerReference.transform;
         playerHealth = playerReference.GetComponent<PlayerHealth>();
         currentScene = SceneManager.GetActiveScene();
+        gameOverReloadButton.gameObject.SetActive(false);
+        gameWinReloadButton.gameObject.SetActive(false);
+        quitButton.gameObject.SetActive(false);
     }
 
-    // Start is called before the first frame update
-    //void Start()
-    //{
-
-    //}
-
-    // Update is called once per frame
     void Update()
     {
         if (playerHealth.isAlive)
         {
-            reloadButton.gameObject.SetActive(false);
+            gameOverReloadButton.gameObject.SetActive(false);
         }
         else
         {
-            reloadButton.gameObject.SetActive(true);
+            gameOverReloadButton.gameObject.SetActive(true);
+            quitButton.gameObject.SetActive(true);
         }
     }
 
     public void ReloadScene()
     {
+        Time.timeScale = 1; // Resume the game
         SceneManager.LoadScene(currentScene.name);
     }
 
@@ -48,5 +48,27 @@ public class GameManager : MonoBehaviour
     {
         GameObject[] colonists = GameObject.FindGameObjectsWithTag("Colonist");
         return colonists.Length;
+    }
+
+    public void WinState()
+    {
+        if (GetTotalColonists() == 0)
+        {
+            gameWinReloadButton.gameObject.SetActive(true);
+            quitButton.gameObject.SetActive(true);
+            Time.timeScale = 0; // Pause the game
+        }
+        else
+        {
+            gameWinReloadButton.gameObject.SetActive(false);
+            quitButton.gameObject.SetActive(false);
+            Debug.LogError("Not all colonists have been saved.");
+        }
+    }
+
+    public void QuitGame()
+    {
+        Time.timeScale = 1; // Resume the game
+        Application.Quit();
     }
 }
