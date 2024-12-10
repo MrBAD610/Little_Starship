@@ -13,7 +13,7 @@ MonoBehaviour:
   m_Name: 3rd-Degree Burns
   m_EditorClassIdentifier: 
   emergencyName: 3rd-Degree Burns
-  presetAffectedRegions: 
-  randomAffectedRegions: 010000000200000003000000040000000500000006000000070000000800000009000000
+  presetAffectedRegions: []
+  randomAffectedRegions: []
   stabilizationTime: 10
   desiredRandomRegions: 3

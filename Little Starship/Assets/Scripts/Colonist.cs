@@ -4,88 +4,119 @@ using UnityEngine;
 
 public class Colonist : MonoBehaviour
 {
-    public List<MedicalEmergency> emergencies;
-    public List<List<BodyRegion>> colonistRegions = new List<List<BodyRegion>>();
-    public List<List<float>> neededTimeForEachRegion = new List<List<float>>();
-    public List<float> neededTimeForEachEmergency = new List<float>();
-    public List<List<float>> progressOfRegions = new List<List<float>>();
-    public List<float> progressOfEmergencies = new List<float>();
-    public Rigidbody ColonistRigidbody { get; private set; }
+    [SerializeField] private List<InjuryCollection> InitialInjuryCollections = new List<InjuryCollection>();
+    public List<InjuryCollection> colonistInjuryCollections = new List<InjuryCollection>();
+
+    public List<float> neededTimeForEachInjuryCollection = new List<float>();
+    public List<float> progressOfInjuryCollections = new List<float>();
+    public float neededTimeToStabilizeColonist = 0.0f;
+    public float totalStabilizationProgress = 0.0f;
+
+    public bool firstPickup = true;
+
+    public Rigidbody ColonistRigidbody { get; set; }
+
+    // New field to store the selected injury collection index
+    public int selectedInjuryCollectionIndex = 0;
 
     private void Awake()
     {
-        ColonistRigidbody = GetComponent<Rigidbody>(); 
-        InitializeRegionsAndTimes(); // Initialize random regions on Awake
+        ColonistRigidbody = GetComponent<Rigidbody>();
+        InitializeInjuries(); // Initialize random regions on Awake
     }
 
-    private void InitializeRegionsAndTimes()
+    private void InitializeInjuries()
     {
-        int regionAndTimeListIndex = 0;
-
-        foreach (var emergency in emergencies)
+        for (int i = 0; i < InitialInjuryCollections.Count; i++)
         {
-            colonistRegions.Add(new List<BodyRegion>());        // Initialize new list of body regions
-            neededTimeForEachRegion.Add(new List<float>());     // Initialize new list of stabilization times
-            progressOfRegions.Add(new List<float>());           // Initialize new list storing region progresses
-            float emergencyTotalTime = 0f;
-            string regionTimeLog = $"{gameObject.name}: required region time at index {regionAndTimeListIndex} is ";
-            string regionProgressLog = $"{gameObject.name}: region progress at index {regionAndTimeListIndex} is ";
+            InjuryCollection currentinjuryCollection = InitialInjuryCollections[i];
+            InjuryCollection newInjuryCollection = ScriptableObject.CreateInstance<InjuryCollection>();
 
-            // Skip if the random regions are already chosen
-            if (emergency.presetAffectedRegions != null && emergency.presetAffectedRegions.Count > 0) 
+            float currentTotalCollectionTime = 0.0f;
+
+            if (currentinjuryCollection == null)
             {
-                colonistRegions[regionAndTimeListIndex] = emergency.presetAffectedRegions;
+                Debug.LogError("Injury collection is null.");
+                return;
+            }
 
-                for (int regionIndex = 0; regionIndex < colonistRegions[regionAndTimeListIndex].Count; regionIndex++)
+            List<BodyRegion> currentPresetAffectedRegions = currentinjuryCollection.presetAffectedRegions;
+            List<BodyRegion> currentRandomAffectedRegions = currentinjuryCollection.randomAffectedRegions;
+            int currentDesiredRandomRegions = currentinjuryCollection.desiredRandomRegions;
+            float currentStabilizationTime = currentinjuryCollection.stabilizationTime; // Get the stabilization time for each injured region in the injury collection
+
+            List<BodyRegion> newPresetAffectedRegions = new List<BodyRegion>();
+
+            if (currentPresetAffectedRegions != null) // Add preset regions
+            {
+                foreach (BodyRegion currentPresetRegion in currentPresetAffectedRegions)
                 {
-                    neededTimeForEachRegion[regionAndTimeListIndex].Add(emergency.stabilizationTime);
-                    progressOfRegions[regionAndTimeListIndex].Add(0f);
-                    regionTimeLog += $"({emergency.stabilizationTime})";
-                    regionProgressLog += $"({0f})";
-                    emergencyTotalTime += emergency.stabilizationTime;
+                    BodyRegion newPresetRegion = ScriptableObject.CreateInstance<BodyRegion>();
+                    newPresetRegion.bodyRegionType = currentPresetRegion.bodyRegionType;
+                    newPresetRegion.regionInjuryStatus = InjuryStatus.Injured; // Set the injury status for the preset region
+                    newPresetRegion.stabilizationTime = currentStabilizationTime; // Set the stabilization time for the preset region
+                    newPresetAffectedRegions.Add(newPresetRegion);
                 }
             }
 
-            if (emergency.randomAffectedRegions == null || emergency.randomAffectedRegions.Count == 0)
+            if (currentRandomAffectedRegions != null && currentRandomAffectedRegions.Count > 0)
             {
-                Debug.Log(regionTimeLog);
-                Debug.Log($"{gameObject.name}: required emergency time at index {regionAndTimeListIndex} is {emergencyTotalTime}");
-                Debug.Log($"{gameObject.name}: emergency progress at index {regionAndTimeListIndex} is {0f}");
-                neededTimeForEachEmergency.Add(emergencyTotalTime);
-                progressOfEmergencies.Add(0f);
-                continue;
+                HashSet<int> selectedIndices = new HashSet<int>(); // Ensure unique indices
+                HashSet<BodyRegion.RegionType> uniqueRandomRegionTypes = new HashSet<BodyRegion.RegionType>();
+
+                while (selectedIndices.Count < currentDesiredRandomRegions && selectedIndices.Count < currentRandomAffectedRegions.Count) // Choose random regions
+                {
+                    int randomIndex = Random.Range(0, currentRandomAffectedRegions.Count); // Choose a random index
+                    BodyRegion randomRegion = currentRandomAffectedRegions[randomIndex];
+                    if (uniqueRandomRegionTypes.Add(randomRegion.bodyRegionType))
+                    {
+                        selectedIndices.Add(randomIndex);
+                    }
+                }
+
+                foreach (int index in selectedIndices)
+                {
+                    BodyRegion randomRegion = ScriptableObject.CreateInstance<BodyRegion>();
+                    randomRegion.bodyRegionType = currentRandomAffectedRegions[index].bodyRegionType;
+                    randomRegion.regionInjuryStatus = InjuryStatus.Injured; // Set the injury status for the random region
+                    randomRegion.stabilizationTime = currentStabilizationTime; // Set the stabilization time for the random region
+                    if (!newPresetAffectedRegions.Contains(randomRegion))
+                    {
+                        newPresetAffectedRegions.Add(randomRegion); // Add the chosen region to the preset list
+                    }
+                }
             }
 
-            HashSet<int> selectedIndices = new HashSet<int>();
+            HashSet<BodyRegion.RegionType> uniqueRegionTypes = new HashSet<BodyRegion.RegionType>();
 
-            // Ensure unique indices are chosen
-            while (selectedIndices.Count < emergency.desiredRandomRegions && selectedIndices.Count < emergency.randomAffectedRegions.Count)
+            for (int j = newPresetAffectedRegions.Count - 1; j >= 0; j--)
             {
-                int randomIndex = Random.Range(0, emergency.randomAffectedRegions.Count);
-                selectedIndices.Add(randomIndex);
+                BodyRegion region = newPresetAffectedRegions[j];
+                if (!uniqueRegionTypes.Add(region.bodyRegionType))
+                {
+                    newPresetAffectedRegions.RemoveAt(j); // Remove duplicate region
+                }
             }
 
-            // Add the chosen regions to the emergency's preset list
-            foreach (int index in selectedIndices)
+            foreach (BodyRegion region in newPresetAffectedRegions)
             {
-                colonistRegions[regionAndTimeListIndex].Add(emergency.randomAffectedRegions[index]);
-                neededTimeForEachRegion[regionAndTimeListIndex].Add(emergency.stabilizationTime);
-                progressOfRegions[regionAndTimeListIndex].Add(0f);
-                regionTimeLog += $"({emergency.stabilizationTime})";
-                regionProgressLog += $"({0f})";
-                emergencyTotalTime += emergency.stabilizationTime;
+                int index = (int)region.bodyRegionType;
+                if (index >= 0 && index < newInjuryCollection.injuredBodyCollection.Length)
+                {
+                    currentTotalCollectionTime += currentStabilizationTime; // Add the stabilization time for each injured region to the total collection time
+                    newInjuryCollection.injuredBodyCollection[index] = region; // Set the region in the full body collection to the preset region
+                }
+                else
+                {
+                    Debug.LogWarning($"Invalid body region type index: {index} for region: {region.name}");
+                }
             }
 
-            Debug.Log(regionTimeLog);
-            Debug.Log(regionProgressLog);
-            Debug.Log($"{gameObject.name}: required emergency time at index {regionAndTimeListIndex} is {0f}");
-            Debug.Log($"{gameObject.name}: emergency progress at index {regionAndTimeListIndex} is {emergencyTotalTime}");
-            neededTimeForEachEmergency.Add(emergencyTotalTime);
-            progressOfEmergencies.Add(0f);
-            ++regionAndTimeListIndex;
+            neededTimeForEachInjuryCollection.Add(currentTotalCollectionTime);
+            newInjuryCollection.displayedName = currentinjuryCollection.displayedName;
+            colonistInjuryCollections.Add(newInjuryCollection);
+            progressOfInjuryCollections.Add(0.0f);
         }
-
-        //Debug.Log($"Random regions initialized for Colonist: {gameObject.name}");
     }
 
     private void OnCollisionEnter(Collision other)

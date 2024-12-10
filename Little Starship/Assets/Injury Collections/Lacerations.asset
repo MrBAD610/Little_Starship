@@ -1,0 +1,41 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b3ca2a362e7a0e43a108c15e863cb1b, type: 3}
+  m_Name: Lacerations
+  m_EditorClassIdentifier: 
+  displayedName: Lacerations
+  injuredBodyCollection:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  presetAffectedRegions: []
+  randomAffectedRegions:
+  - {fileID: 11400000, guid: c74f41c460c3df749b76f8ce5448e8e8, type: 2}
+  - {fileID: 11400000, guid: 693d51c619549024b828584ca44c4d7e, type: 2}
+  - {fileID: 11400000, guid: 50c036d79c4491043bf4415c4783ffe2, type: 2}
+  - {fileID: 11400000, guid: 4928cfc097e8b2b4896a05a1c6647dc8, type: 2}
+  - {fileID: 11400000, guid: 72c798e6db4ae784bb661878f467e858, type: 2}
+  - {fileID: 11400000, guid: c4790300f1ecd7444b0a489cac69d278, type: 2}
+  - {fileID: 11400000, guid: 4b9618f6da2568c46a351c29fc26adae, type: 2}
+  - {fileID: 11400000, guid: 5cc5d6c5a98e9be419348823fb4a6744, type: 2}
+  - {fileID: 11400000, guid: a155680d5a77fa545a952745a3760e79, type: 2}
+  desiredRandomRegions: 2
+  stabilizationTime: 10
+  stabilizedRegionTotal: 0/0
+  progressSum: 0
+  isStabilized: 0

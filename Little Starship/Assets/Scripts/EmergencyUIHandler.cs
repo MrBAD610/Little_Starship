@@ -3,384 +3,227 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using System.Collections;
+using System.Linq;
 
-public class EmergencyUIHandler : MonoBehaviour
+public class EmergencyUIHandler : MonoBehaviour // Script for handling emergency UI
 {
     [Header("Prefabs and Containers")]
-    [SerializeField] private GameObject emergencyPrefab; // Prefab for emergencies
-    [SerializeField] private GameObject regionPrefab;    // Prefab for regions
-    [SerializeField] private GameObject regionGroupPrefab; // Prefab for region vertical groups
-    [SerializeField] private Transform listContainer;    // Parent container for emergencies and regions
+    [SerializeField] private Transform InjuryCollectionReadoutContainer;    // Parent container for injury collections
+    [SerializeField] private GameObject InjuryCollectionReadoutPrefab; // Prefab for injury collections
+    [SerializeField] private GameObject TransmitButtonPrefab;      // Button for transmitting stabilized colonist
 
-    private Colonist currentColonist;
+    [Header("Script Reference")]
+    [SerializeField] private ColonistDiagramUIHandler ColonistDiagramUIHandler; // Reference to ColonistDiagramUIHandler
 
-    private List<GameObject> emergencyItems = new List<GameObject>();
-    private List<GameObject> placeholderItems = new List<GameObject>();
-    private List<List<GameObject>> regionItems = new List<List<GameObject>>();
-    private List<float> emergencyProgresses = new List<float>();
-    private List<List<float>> regionProgresses = new List<List<float>>();
-    private List<CircularProgressBar> emergencyProgressBars = new List<CircularProgressBar>();
-    private List<List<CircularProgressBar>> regionProgressBars = new List<List<CircularProgressBar>>();
+    private List<InjuryCollection> currentInjuryCollections; // List of injury collections for the current colonist
 
-    private int selectedEmergencyIndex = 0;
-    private int selectedRegionIndex = 0;
-    private int expansionIndex = 0;
-    private int progressingEmergencyIndex = -1;
-    private int progressingRegionIndex = -1;
-    private CircularProgressBar progressingEmergency;
-    private CircularProgressBar progressingRegion;
-    private bool hasExpanded = false;
+    private List<GameObject> injuryCollectionReadoutItems = new List<GameObject>(); // List of injury collection readout items
+    private List<TextMeshProUGUI> regionTotals = new List<TextMeshProUGUI>(); // List of region totals text components for each injury collection
+    private List<float> injuryCollectionProgressTimes = new List<float>(); // List of injury collection progress times
+    private List<Button> injuryCollectionButtons = new List<Button>(); // List of injury collection buttons
 
-    private enum NavigationState { Emergency, Region }
-    private NavigationState currentState = NavigationState.Emergency;
+    private Button TransmitButton; // Button for transmitting stabilized colonist
 
-    public void DisplayEmergenciesWithRegions(Colonist colonistInput)
+    private Colonist currentColonist; // Reference to the current colonist
+
+    private void Awake()
+    {
+        if (TransmitButtonPrefab == null) // Check if the transmit button prefab is assigned
+        {
+            Debug.LogError("TransmitButtonPrefab not found on EmergencyUIHandler.");
+        }
+        TransmitButton = TransmitButtonPrefab.GetComponent<Button>(); // Get the button component from the transmit button prefab
+    }
+
+    private void Start()
+    {
+        TransmitButton.interactable = false; // Disable the transmit button by default
+
+        if (InjuryCollectionReadoutPrefab == null || InjuryCollectionReadoutContainer == null)
+        {
+            Debug.LogError("EmergencyUIHandler is missing a prefab or container reference.");
+        }
+        if (TransmitButton == null)
+        {
+            Debug.LogError("TransmitButton not found on TransmitButtonPrefab.");
+            return;
+        }
+        if (ColonistDiagramUIHandler == null)
+        {
+            Debug.LogError("ColonistDiagramUIHandler not found on EmergencyUIHandler.");
+            return;
+        }
+    }
+
+    public void DisplayNewColonistCollections(Colonist colonistInput)
     {
         currentColonist = colonistInput;
 
-        List<MedicalEmergency> emergencies = currentColonist.emergencies;
-        List<List<BodyRegion>> regions = currentColonist.colonistRegions;
-        List<float> emergencyMaxTimes = currentColonist.neededTimeForEachEmergency;
-        List<List<float>> regionMaxTimes = currentColonist.neededTimeForEachRegion;
+        currentInjuryCollections = currentColonist.colonistInjuryCollections;
+        var colonistInjuryCollectionStabilizationTimes = currentColonist.neededTimeForEachInjuryCollection;
+        var colonistInjuryCollectionProgressTimes = currentColonist.progressOfInjuryCollections;
 
-        emergencyProgresses = currentColonist.progressOfEmergencies;
-        regionProgresses = currentColonist.progressOfRegions;
+        // Debug logs to check the values
+        Debug.Log($"New Injury Collections Count: {currentInjuryCollections.Count}");
+        Debug.Log($"Stabilization Times Count: {colonistInjuryCollectionStabilizationTimes.Count}");
+        Debug.Log($"Progress Times Count: {colonistInjuryCollectionProgressTimes.Count}");
 
-        ClearList(); // Ensure the list is empty before repopulating.
-
-        for (int i = 0; i < emergencies.Count; i++)
+        if (currentInjuryCollections.Count != colonistInjuryCollectionStabilizationTimes.Count || currentInjuryCollections.Count != colonistInjuryCollectionProgressTimes.Count)
         {
-            if (!ValidateEmergencyData(i, emergencies, emergencyMaxTimes, emergencyProgresses)) return;
+            Debug.LogError($"Mismatch: currentInjuryCollections.Count ({currentInjuryCollections.Count}) != colonistInjuryCollectionStabilizationTimes.Count ({colonistInjuryCollectionStabilizationTimes.Count}) or != colonistInjuryCollectionProgressTimes.Count ({colonistInjuryCollectionProgressTimes.Count})");
+            return; // Exit early to prevent runtime error
+        }
 
-            var emergencyItem = CreateEmergencyItem(emergencies[i], emergencyMaxTimes[i], emergencyProgresses[i]);
-            emergencyItems.Add(emergencyItem);
+        if (colonistInjuryCollectionStabilizationTimes.Count == 0 || colonistInjuryCollectionProgressTimes.Count == 0)
+        {
+            Debug.LogWarning($"colonistInjuryCollectionStabilizationTimes ({colonistInjuryCollectionStabilizationTimes.Count}) or colonistInjuryCollectionProgressTimes ({colonistInjuryCollectionProgressTimes.Count}) is empty.");
+            return; // Avoid processing further
+        }
 
-            var regionPlaceholder = Instantiate(regionGroupPrefab, listContainer);
-            placeholderItems.Add(regionPlaceholder);
+        ClearEmergencyUI(); // Ensure the list is empty before repopulating.
+        TransmitButton.interactable = false; // Disable the transmit button for the new colonist
 
-            regionItems.Add(new List<GameObject>());
-            regionProgressBars.Add(new List<CircularProgressBar>());
+        injuryCollectionProgressTimes = new List<float>(colonistInjuryCollectionProgressTimes); // Update injuryCollectionProgressTimes
 
-            if (i >= regions.Count || regions[i] == null)
+        for (int i = 0; i < currentInjuryCollections.Count; i++)
+        {
+            var injuryCollectionItem = Instantiate(InjuryCollectionReadoutPrefab, InjuryCollectionReadoutContainer); // Instantiate the injury collection prefab
+            var injuryCollectionTexts = injuryCollectionItem.GetComponentsInChildren<TextMeshProUGUI>(); // Get all TextMeshProUGUI components in the injury collection item
+
+            if (injuryCollectionTexts.Length > 0) // Check if TextMeshProUGUI components are found
             {
-                Debug.LogError($"Invalid index or null region at index {i}");
-                continue;
+                injuryCollectionTexts[0].text = currentInjuryCollections[i].displayedName; // Update the injury collection name text
+                currentInjuryCollections[i].UpdateStabilizedRegionCount(); // Update the stabilized region count for the injury collection
+                injuryCollectionTexts[1].text = currentInjuryCollections[i].stabilizedRegionTotal; // Update the region total text
+                regionTotals.Add(injuryCollectionTexts[1]); // Add the region total text component to the regionTotals list
+            }
+            else // Log a warning if no TextMeshProUGUI components are found
+            {
+                Debug.LogWarning("No TextMeshProUGUI components found in injuryCollectionItem.");
             }
 
-            CreateRegionItems(i, regions[i], regionMaxTimes[i], regionProgresses[i], regionPlaceholder);
-            regionPlaceholder.SetActive(false);
+            injuryCollectionReadoutItems.Add(injuryCollectionItem);
+            var button = injuryCollectionItem.GetComponent<Button>();
+            injuryCollectionButtons.Add(button);
+
+            // Add listener to the button
+            int index = i; // Capture the current index
+            button.onClick.AddListener(() => OnInjuryCollectionButtonClicked(index));
         }
 
-        HighlightEmergency(0);
+        // Restore the previously selected injury collection index for the current colonist
+        int bookmarkedIndex = currentColonist.selectedInjuryCollectionIndex;
+        OnInjuryCollectionButtonClicked(bookmarkedIndex);
+        UpdateRegionTotals();
     }
 
-    private bool ValidateEmergencyData(int index, List<MedicalEmergency> emergencies, List<float> emergencyMaxTimes, List<float> emergencyProgresses)
+    private void OnInjuryCollectionButtonClicked(int index)
     {
-        if (emergencies.Count != emergencyMaxTimes.Count || emergencies.Count != emergencyProgresses.Count)
+        Debug.Log($"Button {index} clicked.");
+
+        ColonistDiagramUIHandler.SetDisplayedInjuryCollection(currentInjuryCollections[index]);
+
+        // Save the selected injury collection index for the current colonist
+        if (currentColonist != null)
         {
-            Debug.LogError($"Mismatch: emergencies.Count ({emergencies.Count}) != emergencyMaxTimes.Count ({emergencyMaxTimes.Count}) or != emergencyProgresses.Count ({emergencyProgresses.Count})");
-            return false;
+            currentColonist.selectedInjuryCollectionIndex = index;
         }
-        if (emergencyMaxTimes.Count == 0 || emergencyProgresses.Count == 0)
-        {
-            Debug.LogWarning($"emergencyMaxTimes ({emergencyMaxTimes.Count}) or emergencyProgresses ({emergencyProgresses.Count}) is empty.");
-            return false;
-        }
-        if (index >= emergencyMaxTimes.Count || index >= emergencyProgresses.Count)
-        {
-            Debug.LogError($"Index {index} out of range for emergencyProgresses (Count: {emergencyMaxTimes.Count})");
-            return false;
-        }
-        return true;
     }
 
-    private GameObject CreateEmergencyItem(MedicalEmergency emergency, float maxTime, float progress)
+    public void UpdateRegionTotals() // Update the region totals for each injury collection
     {
-        var emergencyItem = Instantiate(emergencyPrefab, listContainer);
-        var emergencyText = emergencyItem.GetComponentInChildren<TextMeshProUGUI>();
-        emergencyText.text = emergency.emergencyName;
+        bool allStabilized = true; // Flag to check if all regions are stabilized
 
-        var emergencyProgressBar = emergencyItem.GetComponentInChildren<CircularProgressBar>();
-        emergencyProgressBar.timeTillCompletion = maxTime;
-        emergencyProgressBar.currentProgress = progress;
-
-        emergencyProgressBars.Add(emergencyProgressBar);
-        return emergencyItem;
-    }
-
-    private void CreateRegionItems(int emergencyIndex, List<BodyRegion> regions, List<float> regionMaxTimes, List<float> regionProgresses, GameObject regionPlaceholder)
-    {
-        for (int j = 0; j < regions.Count; j++)
+        for (int i = 0; i < currentInjuryCollections.Count; i++) // Loop through all injury collections
         {
-            var regionItem = Instantiate(regionPrefab, regionPlaceholder.transform);
-            var regionText = regionItem.GetComponentInChildren<TextMeshProUGUI>();
-            regionText.text = regions[j].ToString();
-
-            var regionProgressBar = regionItem.GetComponentInChildren<CircularProgressBar>();
-            if (regionProgressBar != null && j < regionMaxTimes.Count && j < regionProgresses.Count)
+            if (regionTotals[i] != null)
             {
-                regionProgressBar.timeTillCompletion = regionMaxTimes[j];
-                regionProgressBar.currentProgress = regionProgresses[j];
-                regionProgressBars[emergencyIndex].Add(regionProgressBar);
-            }
-            else
-            {
-                Debug.LogWarning($"Invalid progress bar data at region {emergencyIndex}, index {j}");
+                regionTotals[i].text = currentInjuryCollections[i].stabilizedRegionTotal; // Update the region total text
             }
 
-            regionItems[emergencyIndex].Add(regionItem);
-        }
-    }
-
-    public void PerformSelection()
-    {
-        if (currentState == NavigationState.Emergency)
-        {
-            ExpandRegions();
-        }
-        else if (currentState == NavigationState.Region)
-        {
-            MakeProgress();
-        }
-    }
-
-    private void ExpandRegions()
-    {
-        if (!IsValidIndex(selectedEmergencyIndex, placeholderItems.Count, "selectedEmergencyIndex")) return;
-        if (!IsValidIndex(expansionIndex, placeholderItems.Count, "expansionIndex")) return;
-
-        if (placeholderItems[expansionIndex].activeSelf)
-        {
-            placeholderItems[expansionIndex].SetActive(false);
-            ResizeRegionGroup(placeholderItems[expansionIndex], 1);
-        }
-
-        expansionIndex = selectedEmergencyIndex;
-        hasExpanded = true;
-        placeholderItems[expansionIndex].SetActive(true);
-        ResizeRegionGroup(placeholderItems[expansionIndex], regionItems[expansionIndex].Count);
-        currentState = NavigationState.Region;
-
-        HighlightRegion(0);
-    }
-
-    private bool IsValidIndex(int index, int count, string indexName)
-    {
-        if (index < 0 || index >= count)
-        {
-            Debug.LogWarning($"Index {indexName} {index} out of range (0) - ({count - 1})");
-            return false;
-        }
-        return true;
-    }
-
-    private void MakeProgress()
-    {
-        if (!IsValidIndex(expansionIndex, regionItems.Count, "expansionIndex")) return;
-        if (!IsValidIndex(selectedRegionIndex, regionItems[expansionIndex].Count, "selectedRegionIndex")) return;
-
-        if (progressingRegionIndex != -1 && progressingEmergencyIndex != -1)
-        {
-            progressingRegion.isProgressing = false;
-            progressingEmergency.isProgressing = false;
-        }
-
-        progressingEmergencyIndex = expansionIndex;
-        progressingRegionIndex = selectedRegionIndex;
-
-        progressingEmergency = emergencyProgressBars[progressingEmergencyIndex];
-        progressingRegion = regionProgressBars[progressingEmergencyIndex][progressingRegionIndex];
-
-        progressingEmergency.isProgressing = true;
-        progressingRegion.isProgressing = true;
-
-        StartCoroutine(TrackingEmergencyProgress());
-    }
-
-    public void HighlightEmergency(int emergencyIndex)
-    {
-        if (!IsValidIndex(emergencyIndex, emergencyItems.Count, "emergencyIndex")) return;
-
-        ResetHighlights();
-        selectedEmergencyIndex = emergencyIndex;
-
-        var emergencyItem = emergencyItems[emergencyIndex];
-        emergencyItem.GetComponent<Image>().color = Color.yellow;
-        Debug.Log($"Highlighted Emergency at index {emergencyIndex} between range (0) - ({emergencyItems.Count - 1})");
-    }
-
-    public void HighlightRegion(int regionIndex)
-    {
-        if (!IsValidIndex(regionIndex, regionItems[expansionIndex].Count, "regionIndex")) return;
-
-        ResetHighlights();
-        selectedRegionIndex = regionIndex;
-
-        var regionItem = regionItems[expansionIndex][regionIndex];
-        regionItem.GetComponent<Image>().color = Color.green;
-        Debug.Log($"Highlighted Region in index {selectedEmergencyIndex} region group at index {regionIndex} between range (0) - ({regionItems[selectedEmergencyIndex].Count - 1})");
-    }
-
-    public void Scroll(int direction)
-    {
-        if (emergencyItems.Count == 0)
-        {
-            Debug.LogWarning($"Cannot divide to find new index since there are {emergencyItems.Count} emergencies");
-            return;
-        }
-        int newIndex = (selectedEmergencyIndex + direction + emergencyItems.Count) % emergencyItems.Count;
-
-        if (currentState == NavigationState.Emergency)
-        {
-            if (!IsValidIndex(selectedEmergencyIndex, emergencyItems.Count, "selectedEmergencyIndex")) return;
-
-            if (selectedEmergencyIndex == expansionIndex && hasExpanded)
+            if (currentInjuryCollections[i].isStabilized) // Check if the injury collection is stabilized
             {
-                currentState = NavigationState.Region;
-                ResizeRegionGroup(placeholderItems[expansionIndex], regionItems[expansionIndex].Count);
-
-                if (direction > 0)
+                if (injuryCollectionButtons[i] != null)
                 {
-                    HighlightRegion(0);
-                    return;
+                    injuryCollectionButtons[i].interactable = false; // Disable the button if the injury collection is stabilized
                 }
-                else if (direction < 0)
+                else
                 {
-                    HighlightRegion(regionItems[expansionIndex].Count - 1);
-                    return;
+                    Debug.LogWarning("Button not found for injury collection.");
                 }
             }
             else
             {
-                HighlightEmergency(newIndex);
-            }
-        }
-        else if (currentState == NavigationState.Region)
-        {
-            if (!IsValidIndex(selectedEmergencyIndex, placeholderItems.Count, "selectedEmergencyIndex")) return;
-
-            int newRegionIndex = selectedRegionIndex + direction;
-
-            if (newRegionIndex < 0 || newRegionIndex >= regionItems[selectedEmergencyIndex].Count)
-            {
-                currentState = NavigationState.Emergency;
-                ResizeRegionGroup(placeholderItems[expansionIndex], 1);
-
-                if (direction > 0)
+                if (injuryCollectionButtons[i] != null)
                 {
-                    HighlightEmergency((expansionIndex + 1 + emergencyItems.Count) % emergencyItems.Count);
-                    return;
+                    injuryCollectionButtons[i].interactable = true; // Enable the button if the injury collection is not stabilized
                 }
-                else if (direction < 0)
-                {
-                    HighlightEmergency((expansionIndex - 1 + emergencyItems.Count) % emergencyItems.Count);
-                    return;
-                }
-            }
-            else
-            {
-                HighlightRegion(newRegionIndex);
+                allStabilized = false; // Set the flag to false if any injury collection is not stabilized
             }
         }
-    }
 
-    public void ClearDisplay()
-    {
-        ClearList();
-    }
-
-    private void ResizeRegionGroup(GameObject rectangleObject, int numRegions)
-    {
-        RectTransform rectTrans = rectangleObject.GetComponent<RectTransform>();
-        float width = rectTrans.sizeDelta.x;
-        float height = (100 * numRegions);
-        rectTrans.sizeDelta = new Vector2(width, height);
-
-        // Update parent layout
-        RectTransform parentRect = rectTrans.parent.GetComponent<RectTransform>();
-        LayoutRebuilder.ForceRebuildLayoutImmediate(parentRect);
-
-        // Update TextMeshPro objects
-        foreach (Transform child in parentRect)
+        if (allStabilized) // Check if all injury collections are stabilized
         {
-            TextMeshProUGUI textMeshPro = child.GetComponentInChildren<TextMeshProUGUI>();
-            if (textMeshPro != null)
+            if (TransmitButton != null)
             {
-                textMeshPro.ForceMeshUpdate();
+                TransmitButton.interactable = true; // Enable the transmit button if all injury collections are stabilized
+            }
+        }
+        else
+        {
+            if (TransmitButton != null)
+            {
+                TransmitButton.interactable = false; // Disable the transmit button if any injury collection is not stabilized
             }
         }
     }
 
-    private void ResetHighlights()
+    public Colonist ApplyProgressionToColonist(Colonist newColonist)
     {
-        foreach (var emergency in emergencyItems)
+        if (newColonist == null)
         {
-            var image = emergency.GetComponent<Image>();
-            if (image != null)
-            {
-                image.color = Color.white; // Reset to default
-            }
+            Debug.LogWarning("Cannot apply progression to null colonist.");
+            return null;
         }
 
-        foreach (List<GameObject> regionGroup in regionItems)
+        if (newColonist.colonistInjuryCollections.Count != injuryCollectionProgressTimes.Count)
         {
-            foreach (var region in regionGroup)
-            {
-                var image = region.GetComponent<Image>();
-                if (image != null)
-                {
-                    image.color = Color.white; // Reset to default
-                }
-            }
+            Debug.LogWarning($"Cannot apply progression to colonist with {newColonist.colonistInjuryCollections.Count} injury collections and {injuryCollectionProgressTimes.Count} progression times.");
+            return newColonist;
         }
+
+        for (int i = 0; i < newColonist.colonistInjuryCollections.Count; i++)
+        {
+            var injuryCollection = newColonist.colonistInjuryCollections[i];
+            var progressTime = injuryCollectionProgressTimes[i];
+
+            // Update the progress time for each injury collection
+            injuryCollection.progressSum = progressTime;
+
+            // Update the stabilized region total
+            injuryCollection.UpdateStabilizedRegionCount();
+        }
+
+        // Optionally, update the total stabilization progress for the colonist
+        newColonist.totalStabilizationProgress = injuryCollectionProgressTimes.Sum();
+
+        return newColonist;
     }
 
-    private void ClearList()
+    public void ClearEmergencyUI()
     {
-        ClearGameObjectList(emergencyItems);
-        ClearGameObjectList(placeholderItems);
-        ClearRegionItems();
-
-        expansionIndex = 0;
-        progressingEmergencyIndex = -1;
-        progressingRegionIndex = -1;
-        hasExpanded = false;
-        currentState = NavigationState.Emergency;
-    }
-
-    private void ClearGameObjectList(List<GameObject> list)
-    {
-        foreach (var item in list)
+        foreach (var injuryCollection in injuryCollectionReadoutItems)
         {
-            Destroy(item);
+            Destroy(injuryCollection);
         }
-        list.Clear();
-    }
 
-    private void ClearRegionItems()
-    {
-        foreach (List<GameObject> regionGroup in regionItems)
-        {
-            foreach (var region in regionGroup)
-            {
-                Destroy(region);
-            }
-        }
-        regionItems.Clear();
-    }
+        injuryCollectionReadoutItems.Clear();
+        regionTotals.Clear();
+        injuryCollectionProgressTimes.Clear();
+        injuryCollectionButtons.Clear();
 
-    private IEnumerator TrackingEmergencyProgress()
-    {
-        while (progressingEmergency.isProgressing)
-        {
-            if (!progressingRegion.isProgressing)
-            {
-                progressingEmergency.isProgressing = false;
-            }
-            else
-            {
-                yield return null;
-            }
-        }
+        InjuryCollection emptyInjuryCollection = ScriptableObject.CreateInstance<InjuryCollection>();
+        ColonistDiagramUIHandler.SetDisplayedInjuryCollection(emptyInjuryCollection);
+        TransmitButton.interactable = false;
     }
 }

@@ -40,6 +40,7 @@ public class PlayerController : MonoBehaviour
     private float scrollInput;
     private bool selectInput;
     private bool ejectInput;
+    private bool quitInput;
 
     private float timeOfLastCycle = 0f;
     private float timeOfLastScroll = 0f;
@@ -98,6 +99,7 @@ public class PlayerController : MonoBehaviour
         scrollInput = inputHandler.ScrollInput;
         selectInput = inputHandler.SelectInput;
         ejectInput = inputHandler.EjectInput;
+        quitInput = inputHandler.QuitInput;
     }
 
     private void FixedUpdate()
@@ -131,24 +133,23 @@ public class PlayerController : MonoBehaviour
             {
                 if (scrollInput > 0f) // scroll up to next medical emergency/body region
                 {
-                    emergencyUIHandler.Scroll(-1);
+                    //emergencyUIHandler.Scroll(-1);
                     timeOfLastScroll = Time.time;
-                    //Debug.Log($"Scrolled up at {timeOfLastCycle}");
+                    Debug.Log($"Scrolled up at {timeOfLastCycle}");
                 }
                 else if (scrollInput < 0f) // scroll down to next medical emergency/body region
                 {
-                    emergencyUIHandler.Scroll(1);
+                    //emergencyUIHandler.Scroll(1);
                     timeOfLastScroll = Time.time;
-                    //Debug.Log($"Scrolled down at {timeOfLastCycle}");
+                    Debug.Log($"Scrolled down at {timeOfLastCycle}");
                 }
             }
 
             if (selectInput && !hasSelected)
             {
-                emergencyUIHandler.PerformSelection();
                 hasSelected = true; // Prevent an emergency/region from being selected multiple times
 
-                //Debug.Log("Has hit select button");
+                Debug.Log("Has hit select button");
             }
             else if (!selectInput)
             {
@@ -163,6 +164,11 @@ public class PlayerController : MonoBehaviour
             else if (!ejectInput)
             {
                 hasEjected = false; // Allow another colonist to be ejected
+            }
+
+            if (quitInput)
+            {
+                Application.Quit();
             }
         }
     }
@@ -197,14 +203,7 @@ public class PlayerController : MonoBehaviour
 
     void Eject()
     {
-        if (playerInventory.slotList.Count > 0)
-        {
-            playerInventory.EjectColonist();
-        }
-        else
-        {
-            Debug.Log("No colonists to eject");
-        }
+        playerInventory.EjectColonist();
     }
 
     private IEnumerator Drag()

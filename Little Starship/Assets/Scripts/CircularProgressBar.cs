@@ -16,6 +16,7 @@ public class CircularProgressBar : MonoBehaviour
 
     public float currentProgress = 0f;
     public bool isProgressing = false;
+    public bool isComplete { get; private set;}
 
     private Image symbolImage;
     private Image symbolShadowImage;
@@ -25,6 +26,15 @@ public class CircularProgressBar : MonoBehaviour
     void Start()
     {
         InitializeForDisplay();
+
+        if (currentProgress == timeTillCompletion)
+        {
+            isComplete = true;
+        }
+        else
+        {
+            isComplete = false;
+        }   
     }
 
     void Update()
@@ -56,6 +66,7 @@ public class CircularProgressBar : MonoBehaviour
             {
                 currentProgress = timeTillCompletion;
                 isProgressing = false;
+                isComplete = true;
             }
         }
 

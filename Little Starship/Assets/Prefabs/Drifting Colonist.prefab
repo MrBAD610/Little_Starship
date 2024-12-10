@@ -181,3 +181,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   emergencies: []
+  neededTimeForEachEmergency: []
+  neededTimeToStabilizeColonist: 0
+  totalStabilizationProgress: 0
+  progressOfEmergencies: []
+  colonistInjuryCollections: []
+  fullBodyCollection: {fileID: 11400000, guid: 3d0adb9a5b0638f4da607930c2139237, type: 2}
+  injuredBodyCollection: []
