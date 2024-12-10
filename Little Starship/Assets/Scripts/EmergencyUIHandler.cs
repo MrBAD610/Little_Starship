@@ -26,13 +26,17 @@ public class EmergencyUIHandler : MonoBehaviour // Script for handling emergency
 
     private Colonist currentColonist; // Reference to the current colonist
 
-    private void Start()
+    private void Awake()
     {
         if (TransmitButtonPrefab == null) // Check if the transmit button prefab is assigned
         {
             Debug.LogError("TransmitButtonPrefab not found on EmergencyUIHandler.");
         }
         TransmitButton = TransmitButtonPrefab.GetComponent<Button>(); // Get the button component from the transmit button prefab
+    }
+
+    private void Start()
+    {
         TransmitButton.interactable = false; // Disable the transmit button by default
 
         if (InjuryCollectionReadoutPrefab == null || InjuryCollectionReadoutContainer == null)
@@ -110,6 +114,7 @@ public class EmergencyUIHandler : MonoBehaviour // Script for handling emergency
         // Restore the previously selected injury collection index for the current colonist
         int bookmarkedIndex = currentColonist.selectedInjuryCollectionIndex;
         OnInjuryCollectionButtonClicked(bookmarkedIndex);
+        UpdateRegionTotals();
     }
 
     private void OnInjuryCollectionButtonClicked(int index)
@@ -141,6 +146,10 @@ public class EmergencyUIHandler : MonoBehaviour // Script for handling emergency
                 if (injuryCollectionButtons[i] != null)
                 {
                     injuryCollectionButtons[i].interactable = false; // Disable the button if the injury collection is stabilized
+                }
+                else
+                {
+                    Debug.LogWarning("Button not found for injury collection.");
                 }
             }
             else
@@ -215,5 +224,6 @@ public class EmergencyUIHandler : MonoBehaviour // Script for handling emergency
 
         InjuryCollection emptyInjuryCollection = ScriptableObject.CreateInstance<InjuryCollection>();
         ColonistDiagramUIHandler.SetDisplayedInjuryCollection(emptyInjuryCollection);
+        TransmitButton.interactable = false;
     }
 }
