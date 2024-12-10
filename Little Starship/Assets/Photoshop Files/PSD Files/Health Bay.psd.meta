@@ -107,8 +107,8 @@ ScriptedImporter:
       serializedVersion: 2
       x: 4
       y: 4
-      width: 1200
-      height: 1987
+      width: 1250
+      height: 1956
     spriteID: 9927eaa75ecfac641af9803571ee89ff
     spriteBone: []
     spriteOutline: []
@@ -118,19 +118,19 @@ ScriptedImporter:
     edges: []
     tessellationDetail: 0
     uvTransform: {x: 4, y: 4}
-    spritePosition: {x: 424, y: 30}
+    spritePosition: {x: 399, y: 46}
   - name: Head
     originalName: 
-    pivot: {x: 0.5, y: 1}
-    alignment: 2
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
       serializedVersion: 2
-      x: 472
-      y: 2773
-      width: 287
-      height: 335
-    spriteID: 25576d28b2c75804bbd6c7abc3f2de42
+      x: 1629
+      y: 1077
+      width: 215
+      height: 300
+    spriteID: 65c481cea2080f94091ab476581542cd
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -138,8 +138,8 @@ ScriptedImporter:
     indices: 
     edges: []
     tessellationDetail: 0
-    uvTransform: {x: 472, y: 2773}
-    spritePosition: {x: 875, y: 1645}
+    uvTransform: {x: 1629, y: 1077}
+    spritePosition: {x: 917, y: 1640}
   - name: Neck
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -147,11 +147,11 @@ ScriptedImporter:
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
       serializedVersion: 2
-      x: 472
-      y: 3116
-      width: 201
-      height: 88
-    spriteID: 72dd8bcde79ac9a40bc83f5cf1f36088
+      x: 1629
+      y: 1385
+      width: 137
+      height: 130
+    spriteID: 198226e41f8576047b4c018a39f95081
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -159,8 +159,8 @@ ScriptedImporter:
     indices: 
     edges: []
     tessellationDetail: 0
-    uvTransform: {x: 472, y: 3116}
-    spritePosition: {x: 918, y: 1557}
+    uvTransform: {x: 1629, y: 1385}
+    spritePosition: {x: 954, y: 1518}
   - name: Chest
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -168,11 +168,11 @@ ScriptedImporter:
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
       serializedVersion: 2
-      x: 4
-      y: 3610
-      width: 425
-      height: 392
-    spriteID: 7decb0647f258994bac9e9273becb6c6
+      x: 1629
+      y: 750
+      width: 413
+      height: 319
+    spriteID: f5266b2e7d1f27a498fc87a84984101b
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -180,41 +180,20 @@ ScriptedImporter:
     indices: 
     edges: []
     tessellationDetail: 0
-    uvTransform: {x: 4, y: 3610}
-    spritePosition: {x: 812, y: 1165}
-  - name: RightArm
-    originalName: 
-    pivot: {x: 0, y: 0.5}
-    alignment: 4
-    border: {x: 0, y: 0, z: 0, w: 0}
-    rect:
-      serializedVersion: 2
-      x: 472
-      y: 1999
-      width: 366
-      height: 381
-    spriteID: 7480203f5b12cc94587eea73c1617ea6
-    spriteBone: []
-    spriteOutline: []
-    vertices: []
-    spritePhysicsOutline: []
-    indices: 
-    edges: []
-    tessellationDetail: 0
-    uvTransform: {x: 472, y: 1999}
-    spritePosition: {x: 446, y: 1136}
+    uvTransform: {x: 1629, y: 750}
+    spritePosition: {x: 818, y: 1221}
   - name: LeftArm
     originalName: 
-    pivot: {x: 1, y: 0.5}
-    alignment: 5
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
       serializedVersion: 2
-      x: 472
-      y: 2388
-      width: 354
-      height: 377
-    spriteID: 3cb617e9f5bf4054a8610c85d6d2f633
+      x: 1629
+      y: 4
+      width: 367
+      height: 365
+    spriteID: 523c805a26feaa24cb151c7dcca2c93a
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -222,8 +201,29 @@ ScriptedImporter:
     indices: 
     edges: []
     tessellationDetail: 0
-    uvTransform: {x: 472, y: 2388}
-    spritePosition: {x: 1237, y: 1136}
+    uvTransform: {x: 1629, y: 4}
+    spritePosition: {x: 1219, y: 1147}
+  - name: RightArm
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    rect:
+      serializedVersion: 2
+      x: 1629
+      y: 377
+      width: 367
+      height: 365
+    spriteID: d7a735d32fad6e64680b9ed65227c77b
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 1629, y: 377}
+    spritePosition: {x: 462, y: 1147}
   - name: Midsection
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -231,11 +231,11 @@ ScriptedImporter:
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
       serializedVersion: 2
-      x: 1212
-      y: 4
-      width: 393
-      height: 280
-    spriteID: 032d2160d36accc49aed1fb82948b23d
+      x: 1262
+      y: 1470
+      width: 335
+      height: 288
+    spriteID: 0de2241aba126ab4eaddca9c2eb6ce77
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -243,8 +243,8 @@ ScriptedImporter:
     indices: 
     edges: []
     tessellationDetail: 0
-    uvTransform: {x: 1212, y: 4}
-    spritePosition: {x: 822, y: 885}
+    uvTransform: {x: 1262, y: 1470}
+    spritePosition: {x: 858, y: 953}
   - name: Pelvis
     originalName: 
     pivot: {x: 0.5, y: 0.5}
@@ -252,11 +252,11 @@ ScriptedImporter:
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
       serializedVersion: 2
-      x: 1613
-      y: 4
-      width: 403
-      height: 202
-    spriteID: 8226adc81d46abf4ba35e1d85015eae7
+      x: 1262
+      y: 1766
+      width: 310
+      height: 256
+    spriteID: 040ff2cad0bc32b4faa5b92e29415471
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -264,41 +264,20 @@ ScriptedImporter:
     indices: 
     edges: []
     tessellationDetail: 0
-    uvTransform: {x: 1613, y: 4}
-    spritePosition: {x: 818, y: 683}
-  - name: RightLeg
-    originalName: 
-    pivot: {x: 0, y: 0}
-    alignment: 6
-    border: {x: 0, y: 0, z: 0, w: 0}
-    rect:
-      serializedVersion: 2
-      x: 4
-      y: 1999
-      width: 460
-      height: 802
-    spriteID: e1a9449e20bdad348bd780a497b4e93c
-    spriteBone: []
-    spriteOutline: []
-    vertices: []
-    spritePhysicsOutline: []
-    indices: 
-    edges: []
-    tessellationDetail: 0
-    uvTransform: {x: 4, y: 1999}
-    spritePosition: {x: 564, y: 63}
+    uvTransform: {x: 1262, y: 1766}
+    spritePosition: {x: 869, y: 714}
   - name: LeftLeg
     originalName: 
-    pivot: {x: 1, y: 0}
-    alignment: 8
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
     border: {x: 0, y: 0, z: 0, w: 0}
     rect:
       serializedVersion: 2
-      x: 4
-      y: 2809
-      width: 449
-      height: 793
-    spriteID: 349fc42543650d7409bf35c0088c93a0
+      x: 1262
+      y: 4
+      width: 359
+      height: 725
+    spriteID: 8dde71f10a9949347b3eb9f397404caf
     spriteBone: []
     spriteOutline: []
     vertices: []
@@ -306,8 +285,29 @@ ScriptedImporter:
     indices: 
     edges: []
     tessellationDetail: 0
-    uvTransform: {x: 4, y: 2809}
-    spritePosition: {x: 1024, y: 63}
+    uvTransform: {x: 1262, y: 4}
+    spritePosition: {x: 1089, y: 109}
+  - name: RightLeg
+    originalName: 
+    pivot: {x: 0.5, y: 0.5}
+    alignment: 0
+    border: {x: 0, y: 0, z: 0, w: 0}
+    rect:
+      serializedVersion: 2
+      x: 1262
+      y: 737
+      width: 359
+      height: 725
+    spriteID: 3770dff09b4f7564abd09f7ac90ab521
+    spriteBone: []
+    spriteOutline: []
+    vertices: []
+    spritePhysicsOutline: []
+    indices: 
+    edges: []
+    tessellationDetail: 0
+    uvTransform: {x: 1262, y: 737}
+    spritePosition: {x: 599, y: 109}
   rigSpriteImportData:
   - name: Additional Info Proposal
     originalName: 
@@ -429,7 +429,7 @@ ScriptedImporter:
   spriteCategoryList:
     categories: []
   spritePackingTag: 
-  resliceFromLayer: 0
+  resliceFromLayer: 1
   mosaicPSDLayers:
   - name: Colonist Full Body
     spriteName: Colonist Full Body
@@ -445,8 +445,8 @@ ScriptedImporter:
     spriteName: 
     isGroup: 1
     parentIndex: -1
-    spriteID: b3084c6f2275ad84ca8b41af127f516f
-    layerID: 18
+    spriteID: ff3de680467a8f544acb65b2f7e1aa00
+    layerID: 55
     mosaicPosition: {x: 0, y: 0}
     flatten: 0
     isImported: 0
@@ -455,9 +455,9 @@ ScriptedImporter:
     spriteName: Head
     isGroup: 0
     parentIndex: 1
-    spriteID: 25576d28b2c75804bbd6c7abc3f2de42
-    layerID: 26
-    mosaicPosition: {x: 472, y: 2773}
+    spriteID: 65c481cea2080f94091ab476581542cd
+    layerID: 54
+    mosaicPosition: {x: 1629, y: 1077}
     flatten: 0
     isImported: 1
     isVisible: 1
@@ -465,9 +465,9 @@ ScriptedImporter:
     spriteName: Neck
     isGroup: 0
     parentIndex: 1
-    spriteID: 72dd8bcde79ac9a40bc83f5cf1f36088
-    layerID: 27
-    mosaicPosition: {x: 472, y: 3116}
+    spriteID: 198226e41f8576047b4c018a39f95081
+    layerID: 53
+    mosaicPosition: {x: 1629, y: 1385}
     flatten: 0
     isImported: 1
     isVisible: 1
@@ -475,19 +475,9 @@ ScriptedImporter:
     spriteName: Chest
     isGroup: 0
     parentIndex: 1
-    spriteID: 7decb0647f258994bac9e9273becb6c6
-    layerID: 29
-    mosaicPosition: {x: 4, y: 3610}
-    flatten: 0
-    isImported: 1
-    isVisible: 1
-  - name: RightArm
-    spriteName: RightArm
-    isGroup: 0
-    parentIndex: 1
-    spriteID: 7480203f5b12cc94587eea73c1617ea6
-    layerID: 35
-    mosaicPosition: {x: 472, y: 1999}
+    spriteID: f5266b2e7d1f27a498fc87a84984101b
+    layerID: 52
+    mosaicPosition: {x: 1629, y: 750}
     flatten: 0
     isImported: 1
     isVisible: 1
@@ -495,9 +485,19 @@ ScriptedImporter:
     spriteName: LeftArm
     isGroup: 0
     parentIndex: 1
-    spriteID: 3cb617e9f5bf4054a8610c85d6d2f633
-    layerID: 36
-    mosaicPosition: {x: 472, y: 2388}
+    spriteID: 523c805a26feaa24cb151c7dcca2c93a
+    layerID: 50
+    mosaicPosition: {x: 1629, y: 4}
+    flatten: 0
+    isImported: 1
+    isVisible: 1
+  - name: RightArm
+    spriteName: RightArm
+    isGroup: 0
+    parentIndex: 1
+    spriteID: d7a735d32fad6e64680b9ed65227c77b
+    layerID: 51
+    mosaicPosition: {x: 1629, y: 377}
     flatten: 0
     isImported: 1
     isVisible: 1
@@ -505,9 +505,9 @@ ScriptedImporter:
     spriteName: Midsection
     isGroup: 0
     parentIndex: 1
-    spriteID: 032d2160d36accc49aed1fb82948b23d
-    layerID: 30
-    mosaicPosition: {x: 1212, y: 4}
+    spriteID: 0de2241aba126ab4eaddca9c2eb6ce77
+    layerID: 49
+    mosaicPosition: {x: 1262, y: 1470}
     flatten: 0
     isImported: 1
     isVisible: 1
@@ -515,19 +515,9 @@ ScriptedImporter:
     spriteName: Pelvis
     isGroup: 0
     parentIndex: 1
-    spriteID: 8226adc81d46abf4ba35e1d85015eae7
-    layerID: 33
-    mosaicPosition: {x: 1613, y: 4}
-    flatten: 0
-    isImported: 1
-    isVisible: 1
-  - name: RightLeg
-    spriteName: RightLeg
-    isGroup: 0
-    parentIndex: 1
-    spriteID: e1a9449e20bdad348bd780a497b4e93c
-    layerID: 34
-    mosaicPosition: {x: 4, y: 1999}
+    spriteID: 040ff2cad0bc32b4faa5b92e29415471
+    layerID: 48
+    mosaicPosition: {x: 1262, y: 1766}
     flatten: 0
     isImported: 1
     isVisible: 1
@@ -535,9 +525,19 @@ ScriptedImporter:
     spriteName: LeftLeg
     isGroup: 0
     parentIndex: 1
-    spriteID: 349fc42543650d7409bf35c0088c93a0
-    layerID: 23
-    mosaicPosition: {x: 4, y: 2809}
+    spriteID: 8dde71f10a9949347b3eb9f397404caf
+    layerID: 46
+    mosaicPosition: {x: 1262, y: 4}
+    flatten: 0
+    isImported: 1
+    isVisible: 1
+  - name: RightLeg
+    spriteName: RightLeg
+    isGroup: 0
+    parentIndex: 1
+    spriteID: 3770dff09b4f7564abd09f7ac90ab521
+    layerID: 47
+    mosaicPosition: {x: 1262, y: 737}
     flatten: 0
     isImported: 1
     isVisible: 1

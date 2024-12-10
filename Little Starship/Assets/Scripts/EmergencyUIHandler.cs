@@ -210,7 +210,8 @@ public class EmergencyUIHandler : MonoBehaviour // Script for handling emergency
 
         injuryCollectionReadoutItems.Clear();
         regionTotals.Clear();
-        injuryCollectionProgressTimes = new List<float>();
+        injuryCollectionProgressTimes.Clear();
+        injuryCollectionButtons.Clear();
 
         InjuryCollection emptyInjuryCollection = ScriptableObject.CreateInstance<InjuryCollection>();
         ColonistDiagramUIHandler.SetDisplayedInjuryCollection(emptyInjuryCollection);
