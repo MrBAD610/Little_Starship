@@ -5,7 +5,7 @@ using TMPro;
 using System.Collections;
 using System.Linq;
 
-public class EmergencyUIHandler : MonoBehaviour
+public class EmergencyUIHandler : MonoBehaviour // Script for handling emergency UI
 {
     [Header("Prefabs and Containers")]
     [SerializeField] private Transform InjuryCollectionReadoutContainer;    // Parent container for injury collections
@@ -13,32 +13,32 @@ public class EmergencyUIHandler : MonoBehaviour
     [SerializeField] private GameObject TransmitButtonPrefab;      // Button for transmitting stabilized colonist
 
     [Header("Script Reference")]
-    [SerializeField] private ColonistDiagramUIHandler ColonistDiagramUIHandler;
+    [SerializeField] private ColonistDiagramUIHandler ColonistDiagramUIHandler; // Reference to ColonistDiagramUIHandler
 
-    private List<InjuryCollection> currentInjuryCollections;
+    private List<InjuryCollection> currentInjuryCollections; // List of injury collections for the current colonist
 
-    private List<GameObject> injuryCollectionReadoutItems = new List<GameObject>();
-    private List<TextMeshProUGUI> regionTotals = new List<TextMeshProUGUI>();
-    private List<float> injuryCollectionProgressTimes = new List<float>();
-    private List<Button> injuryCollectionButtons = new List<Button>();
+    private List<GameObject> injuryCollectionReadoutItems = new List<GameObject>(); // List of injury collection readout items
+    private List<TextMeshProUGUI> regionTotals = new List<TextMeshProUGUI>(); // List of region totals text components for each injury collection
+    private List<float> injuryCollectionProgressTimes = new List<float>(); // List of injury collection progress times
+    private List<Button> injuryCollectionButtons = new List<Button>(); // List of injury collection buttons
 
-    private Button TransmitButton;
+    private Button TransmitButton; // Button for transmitting stabilized colonist
 
-    private Colonist currentColonist;
+    private Colonist currentColonist; // Reference to the current colonist
 
     private void Start()
     {
-        if (TransmitButtonPrefab == null)
+        if (TransmitButtonPrefab == null) // Check if the transmit button prefab is assigned
         {
             Debug.LogError("TransmitButtonPrefab not found on EmergencyUIHandler.");
         }
+        TransmitButton = TransmitButtonPrefab.GetComponent<Button>(); // Get the button component from the transmit button prefab
+        TransmitButton.interactable = false; // Disable the transmit button by default
 
         if (InjuryCollectionReadoutPrefab == null || InjuryCollectionReadoutContainer == null)
         {
             Debug.LogError("EmergencyUIHandler is missing a prefab or container reference.");
         }
-
-        TransmitButton = TransmitButtonPrefab.GetComponent<Button>();
         if (TransmitButton == null)
         {
             Debug.LogError("TransmitButton not found on TransmitButtonPrefab.");
@@ -77,24 +77,23 @@ public class EmergencyUIHandler : MonoBehaviour
         }
 
         ClearEmergencyUI(); // Ensure the list is empty before repopulating.
+        TransmitButton.interactable = false; // Disable the transmit button for the new colonist
 
         injuryCollectionProgressTimes = new List<float>(colonistInjuryCollectionProgressTimes); // Update injuryCollectionProgressTimes
 
         for (int i = 0; i < currentInjuryCollections.Count; i++)
         {
-            // Create Injury Collection Entry
-            var injuryCollectionItem = Instantiate(InjuryCollectionReadoutPrefab, InjuryCollectionReadoutContainer);
+            var injuryCollectionItem = Instantiate(InjuryCollectionReadoutPrefab, InjuryCollectionReadoutContainer); // Instantiate the injury collection prefab
+            var injuryCollectionTexts = injuryCollectionItem.GetComponentsInChildren<TextMeshProUGUI>(); // Get all TextMeshProUGUI components in the injury collection item
 
-            var injuryCollectionTexts = injuryCollectionItem.GetComponentsInChildren<TextMeshProUGUI>();
-            if (injuryCollectionTexts.Length > 0)
+            if (injuryCollectionTexts.Length > 0) // Check if TextMeshProUGUI components are found
             {
-                // Assuming you want to modify the first TextMeshProUGUI component
-                injuryCollectionTexts[0].text = currentInjuryCollections[i].displayedName;
-                currentInjuryCollections[i].UpdateStabilizedRegionTotal();
-                injuryCollectionTexts[1].text = currentInjuryCollections[i].stabilizedRegionTotal;
-                regionTotals.Add(injuryCollectionTexts[1]);
+                injuryCollectionTexts[0].text = currentInjuryCollections[i].displayedName; // Update the injury collection name text
+                currentInjuryCollections[i].UpdateStabilizedRegionCount(); // Update the stabilized region count for the injury collection
+                injuryCollectionTexts[1].text = currentInjuryCollections[i].stabilizedRegionTotal; // Update the region total text
+                regionTotals.Add(injuryCollectionTexts[1]); // Add the region total text component to the regionTotals list
             }
-            else
+            else // Log a warning if no TextMeshProUGUI components are found
             {
                 Debug.LogWarning("No TextMeshProUGUI components found in injuryCollectionItem.");
             }
@@ -126,11 +125,47 @@ public class EmergencyUIHandler : MonoBehaviour
         }
     }
 
-    public void UpdateRegionTotals() 
+    public void UpdateRegionTotals() // Update the region totals for each injury collection
     {
-        for (int i = 0; i < currentInjuryCollections.Count; i++)
+        bool allStabilized = true; // Flag to check if all regions are stabilized
+
+        for (int i = 0; i < currentInjuryCollections.Count; i++) // Loop through all injury collections
         {
-            regionTotals[i].text = currentInjuryCollections[i].stabilizedRegionTotal;
+            if (regionTotals[i] != null)
+            {
+                regionTotals[i].text = currentInjuryCollections[i].stabilizedRegionTotal; // Update the region total text
+            }
+
+            if (currentInjuryCollections[i].isStabilized) // Check if the injury collection is stabilized
+            {
+                if (injuryCollectionButtons[i] != null)
+                {
+                    injuryCollectionButtons[i].interactable = false; // Disable the button if the injury collection is stabilized
+                }
+            }
+            else
+            {
+                if (injuryCollectionButtons[i] != null)
+                {
+                    injuryCollectionButtons[i].interactable = true; // Enable the button if the injury collection is not stabilized
+                }
+                allStabilized = false; // Set the flag to false if any injury collection is not stabilized
+            }
+        }
+
+        if (allStabilized) // Check if all injury collections are stabilized
+        {
+            if (TransmitButton != null)
+            {
+                TransmitButton.interactable = true; // Enable the transmit button if all injury collections are stabilized
+            }
+        }
+        else
+        {
+            if (TransmitButton != null)
+            {
+                TransmitButton.interactable = false; // Disable the transmit button if any injury collection is not stabilized
+            }
         }
     }
 
@@ -157,7 +192,7 @@ public class EmergencyUIHandler : MonoBehaviour
             injuryCollection.progressSum = progressTime;
 
             // Update the stabilized region total
-            injuryCollection.UpdateStabilizedRegionTotal();
+            injuryCollection.UpdateStabilizedRegionCount();
         }
 
         // Optionally, update the total stabilization progress for the colonist
