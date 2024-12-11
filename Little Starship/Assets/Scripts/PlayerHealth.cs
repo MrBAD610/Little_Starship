@@ -15,6 +15,8 @@ public class PlayerHealth : MonoBehaviour
 
     public bool isAlive = true;
 
+    public float healAmount = 25.0f;
+
     // Start is called before the first frame update
     void Start()
     {
@@ -43,12 +45,33 @@ public class PlayerHealth : MonoBehaviour
         }
     }
 
+    public void Heal(float healAmount)
+    {
+        float newHealth = currentHealth + healAmount;
+        if (newHealth > maxHealth)
+        {
+            //return;
+            currentHealth = maxHealth;
+        }
+        else
+        {
+            currentHealth = newHealth;
+        }
+        healthBar.value = currentHealth;
+    }
+
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Enemy"))
         {
             TakeDamage(15);
             //playerRigidB.AddForce(collision.transform.position - playerTransform.position * knockBack, ForceMode.Impulse);
+        }
+
+        if (collision.gameObject.CompareTag("Healing Ore"))
+        {
+            Heal(healAmount);
+            Destroy(collision.gameObject);
         }
     }
 }

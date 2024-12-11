@@ -206,19 +206,25 @@ public class PlayerController : MonoBehaviour
         playerInventory.EjectColonist();
     }
 
-    private IEnumerator Drag()
+    private IEnumerator Drag() // Coroutine to drag objects
     {
-        if (grabInput)
+        if (grabInput) // Check if the grab input is held down
         {
-            Ray ray = mainCamera.ScreenPointToRay(curScreenPos);
-            Physics.Raycast(ray, out RaycastHit hit);
-            Transform hitTransform = hit.transform;
-            Rigidbody hitRb = hitTransform.gameObject.GetComponent<Rigidbody>();
-            while (grabInput)
+            Ray ray = mainCamera.ScreenPointToRay(curScreenPos); // Create a ray from the camera to the mouse position
+            if (Physics.Raycast(ray, out RaycastHit hit)) // Check if the raycast hits an object
             {
-                hitRb.velocity = (MousePos - hitTransform.position) * attractSpeed;
-                //hitRb.AddForce((MousePos - hitTransform.position) * attractSpeed);
-                yield return null;
+                Transform hitTransform = hit.transform; // Get the transform of the object hit
+                Rigidbody hitRb = hitTransform.gameObject.GetComponent<Rigidbody>(); // Get the rigidbody of the object hit
+                while (grabInput) // While the grab input is held down
+                {
+                    if (hitTransform == null || hitRb == null) // Check if the object or rigidbody is destroyed
+                    {
+                        yield break; // Exit the coroutine if the object is destroyed
+                    }
+
+                    hitRb.velocity = (MousePos - hitTransform.position) * attractSpeed; // Move the object towards the mouse position
+                    yield return null; // Wait for the next frame
+                }
             }
         }
     }
