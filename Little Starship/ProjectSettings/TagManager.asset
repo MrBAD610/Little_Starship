@@ -6,6 +6,7 @@ TagManager:
   tags:
   - Enemy
   - Colonist
+  - Healing Ore
   layers:
   - Default
   - TransparentFX
