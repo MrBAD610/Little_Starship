@@ -38,14 +38,14 @@ public class PlayerController : MonoBehaviour
     public bool grabInput;
     private float cycleInput;
     private float scrollInput;
-    private bool selectInput;
+    private bool healInput;
     private bool ejectInput;
     private bool quitInput;
 
     private float timeOfLastCycle = 0f;
     private float timeOfLastScroll = 0f;
 
-    private bool hasSelected = false; // Prevent multiple selections on a single press
+    private bool hasHealed = false; // Prevent multiple selections on a single press
     private bool hasEjected = false;  // Prevent multiple ejections on a single press
 
     public bool CanGrab
@@ -97,7 +97,7 @@ public class PlayerController : MonoBehaviour
         grabInput = inputHandler.GrabInput;
         cycleInput = inputHandler.CycleInput;
         scrollInput = inputHandler.ScrollInput;
-        selectInput = inputHandler.SelectInput;
+        healInput = inputHandler.HealInput;
         ejectInput = inputHandler.EjectInput;
         quitInput = inputHandler.QuitInput;
     }
@@ -145,15 +145,15 @@ public class PlayerController : MonoBehaviour
                 }
             }
 
-            if (selectInput && !hasSelected)
+            if (healInput && !hasHealed)
             {
-                hasSelected = true; // Prevent an emergency/region from being selected multiple times
+                hasHealed = true; // Prevent use of heal ore more than once per press
 
-                Debug.Log("Has hit select button");
+                Debug.Log("Has hit heal button");
             }
-            else if (!selectInput)
+            else if (!healInput)
             {
-                hasSelected = false; // Allow an emergency/region to be selected
+                hasHealed = false; // Allow an emergency/region to be selected
             }
 
             if (ejectInput && !hasEjected)
@@ -215,6 +215,11 @@ public class PlayerController : MonoBehaviour
             {
                 Transform hitTransform = hit.transform; // Get the transform of the object hit
                 Rigidbody hitRb = hitTransform.gameObject.GetComponent<Rigidbody>(); // Get the rigidbody of the object hit
+                BreakableAsteroid asteroid = hitTransform.gameObject.GetComponent<BreakableAsteroid>(); // Get the asteroid component of the object hit (if it has one)
+                if (asteroid != null) // Check if the object hit is an asteroid
+                {
+                    asteroid.beingHeld = true; // Set the asteroid to being held
+                }
                 while (grabInput) // While the grab input is held down
                 {
                     if (hitTransform == null || hitRb == null) // Check if the object or rigidbody is destroyed
@@ -224,6 +229,10 @@ public class PlayerController : MonoBehaviour
 
                     hitRb.velocity = (MousePos - hitTransform.position) * attractSpeed; // Move the object towards the mouse position
                     yield return null; // Wait for the next frame
+                }
+                if (asteroid != null) // Check if the object hit is an asteroid
+                {
+                    asteroid.beingHeld = false; // Set the asteroid to not being held
                 }
             }
         }

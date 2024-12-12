@@ -17,7 +17,7 @@ public class PlayerInputHandler : MonoBehaviour
     [SerializeField] private string grab = "Grab";
     [SerializeField] private string cycle = "Cycle";
     [SerializeField] private string scroll = "Scroll";
-    [SerializeField] private string select = "Select";
+    [SerializeField] private string heal = "Heal";
     [SerializeField] private string eject = "Eject";
     [SerializeField] private string quit = "Quit";
 
@@ -26,7 +26,7 @@ public class PlayerInputHandler : MonoBehaviour
     private InputAction grabAction;
     private InputAction cycleAction;
     private InputAction scrollAction;
-    private InputAction selectAction;
+    private InputAction healAction;
     private InputAction ejectAction;
     private InputAction quitAction;
 
@@ -39,32 +39,10 @@ public class PlayerInputHandler : MonoBehaviour
     public bool GrabInput { get; private set; }
     public float CycleInput { get; private set; } // -1 for previous slot, 1 for next slot
     public float ScrollInput { get; private set; } // -1 for previous slot, 1 for next slot
-    public bool SelectInput { get; private set; }
+    public bool HealInput { get; private set; }
     public bool EjectInput { get; private set; }
     public bool QuitInput { get; private set; }
 
-    //private bool isDraging;
-    //private Vector3 WorldPos
-    //{
-    //    get
-    //    {
-    //        float z = cam.WorldToScreenPoint(transform.position).z;
-    //        return cam.ScreenToWorldPoint(curScreenPos + new Vector3(0, 0, z));
-    //    }
-    //}
-
-    //public bool CanGrab
-    //{
-    //    get
-    //    {
-    //        Ray ray = Camera.ScreenPointToRay(LookInput);
-    //        if (Physics.Raycast(ray, out RaycastHit hit) && hit.transform.gameObject.TryGetComponent<Rigidbody>(out Rigidbody hitRb))
-    //        {
-    //            return hit.transform.gameObject.layer == LayerMask.NameToLayer("Grabbable");
-    //        }
-    //        return false;
-    //    }
-    //}
 
     public static PlayerInputHandler Instance { get; private set; }
 
@@ -81,7 +59,7 @@ public class PlayerInputHandler : MonoBehaviour
         grabAction = playerControls.FindActionMap(actionMapName).FindAction(grab);
         cycleAction = playerControls.FindActionMap(actionMapName).FindAction(cycle);
         scrollAction = playerControls.FindActionMap(actionMapName).FindAction(scroll);
-        selectAction = playerControls.FindActionMap(actionMapName).FindAction(select);
+        healAction = playerControls.FindActionMap(actionMapName).FindAction(heal);
         ejectAction = playerControls.FindActionMap(actionMapName).FindAction(eject);
         quitAction = playerControls.FindActionMap(actionMapName).FindAction(quit);  
         RegisterInputActions();
@@ -97,8 +75,6 @@ public class PlayerInputHandler : MonoBehaviour
 
         grabAction.performed += context => GrabInput = true;
         grabAction.canceled += context => GrabInput = false;
-        //grabAction.performed += _ => { if (canGrab) StartCoroutine(Drag()); };
-        //grabAction.canceled += _ => { isDraging = false; };
 
         cycleAction.performed += context => CycleInput = context.ReadValue<float>();
         cycleAction.canceled += context => CycleInput = 0;
@@ -106,8 +82,8 @@ public class PlayerInputHandler : MonoBehaviour
         scrollAction.performed += context => ScrollInput = context.ReadValue<float>();
         scrollAction.canceled += context => ScrollInput = 0;
 
-        selectAction.performed += context => SelectInput = true;
-        selectAction.canceled += context => SelectInput = false;
+        healAction.performed += context => HealInput = true;
+        healAction.canceled += context => HealInput = false;
 
         ejectAction.performed += context => EjectInput = true;
         ejectAction.canceled += context => EjectInput = false;
@@ -123,7 +99,7 @@ public class PlayerInputHandler : MonoBehaviour
         grabAction.Enable();
         cycleAction.Enable();
         scrollAction.Enable();
-        selectAction.Enable();
+        healAction.Enable();
         ejectAction.Enable();
         quitAction.Enable();
     }
@@ -135,22 +111,8 @@ public class PlayerInputHandler : MonoBehaviour
         grabAction.Disable();
         cycleAction.Disable();
         scrollAction.Disable();
-        selectAction.Disable();
+        healAction.Disable();
         ejectAction.Disable();
         quitAction.Disable();
     }
-
-    //private IEnumerator Drag()
-    //{
-    //    isDraging = true;
-    //    Vector3 offset = transform.position - WorldPos;
-    //    // grabing game object
-    //    while(isDraging)
-    //    {
-    //        // dragging game object
-    //        transform.position = WorldPos + offset;
-    //        yield return null;
-    //        Debug.Log("Has grabbed");
-    //    }
-    //}
 }

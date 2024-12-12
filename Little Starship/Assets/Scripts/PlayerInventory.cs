@@ -19,6 +19,10 @@ public class PlayerInventory : MonoBehaviour
     [SerializeField] private TextMeshProUGUI colonistCounterText;
     [SerializeField] GameManager gameManager;
 
+    [Header("Health Ore Collection")]
+    [SerializeField] private TextMeshProUGUI oreCounterText;
+    [SerializeField] private int numberOfOres = 0;
+
     private int intialColonistCount;
     private int colonistCount;
 
