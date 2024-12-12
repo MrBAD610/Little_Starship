@@ -102,7 +102,7 @@ public class CircularProgressBar : MonoBehaviour
     private void InitializeForDisplay()
     {
         // Initialize the Image fields by finding child components
-        foreach (Transform child in transform)
+        foreach (Transform child in transform) // Iterate over all children of the parent transform
         {
             Image childImage = child.GetComponent<Image>();
             if (childImage != null)
