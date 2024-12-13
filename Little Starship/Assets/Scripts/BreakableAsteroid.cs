@@ -33,9 +33,9 @@ public class BreakableAsteroid : MonoBehaviour
     private void OnCollisionEnter(Collision collision) // When the object collides with something
     {
         Vector3 impactForce = collision.impulse / Time.deltaTime; // Calculate the force of the impact
+        Vector3 velocityAtImpact = -collision.relativeVelocity; // Get the velocity at the point of impact
         if (impactForce.magnitude > fractureForce && beingHeld) // If the force is greater than the fracture force and the object is being held
         {
-            Vector3 impactVelocity = asteroidRigidbody.velocity; // Get the velocity of the impact
             GameObject fracturedObject = Instantiate(fracturedVersion, transform.position, transform.rotation); // Spawn in the broken version
             Transform fracturedTransform = fracturedObject.transform; // Get the transform of the broken object
             foreach (Transform child in fracturedTransform) // For each child in the broken object
@@ -43,10 +43,16 @@ public class BreakableAsteroid : MonoBehaviour
                 Rigidbody childRigidbody = child.GetComponent<Rigidbody>(); // Get the rigidbody component
                 if (childRigidbody != null) // If the child has a rigidbody
                 {
-                    childRigidbody.velocity = impactVelocity; // Set the velocity of the child to the impact velocity
-                    // childRigidbody.AddExplosionForce(impactForce.magnitude, transform.position, 1f); // Add an explosion
+                    childRigidbody.velocity = velocityAtImpact; // Set the velocity of the child to the impact velocity
+                    //childRigidbody.AddExplosionForce(impactForce.normalized.magnitude, transform.position, 1f); // Add an explosion
                 }
             }
+
+            if (collision.gameObject.CompareTag("Enemy")) // If the object collided with an enemy kill the enemy
+            {
+                collision.gameObject.GetComponent<EnemyBrain>().Kill(); // Kill the enemy
+            }
+
             DropItem(dropableHealthOre); // Drop a health ore item
             Destroy(gameObject); // Destroy the object to stop it getting in the way
         }

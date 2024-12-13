@@ -13,8 +13,11 @@ public class EnemyBrain : MonoBehaviour
     private EnemyReferences enemyReferences;
 
     [Header("Stats")]
-    [SerializeField] public float pathUpdateDelay = 0.2f;
-    [SerializeField] public float detectionRadius = 5f;
+    public float pathUpdateDelay = 0.2f;
+    public float detectionRadius = 5f;
+
+    [Header("References")]
+    [SerializeReference] private GameObject DeadEnemy;
 
     private float pathUpdateDeadline;
 
@@ -119,5 +122,11 @@ public class EnemyBrain : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, attackRange);
         Gizmos.color = Color.yellow;
         Gizmos.DrawWireSphere(transform.position, sightRange);
+    }
+
+    public void Kill() // Function to kill the enemy
+    {
+        Instantiate(DeadEnemy, transform.position, transform.rotation); // Spawn in the dead enemy
+        Destroy(gameObject); // Destroy the object to stop it getting in the way
     }
 }
