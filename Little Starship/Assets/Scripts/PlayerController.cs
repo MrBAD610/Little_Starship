@@ -20,6 +20,7 @@ public class PlayerController : MonoBehaviour
     [SerializeField] private float scrollCooldown = 0.2f;
 
     [Header("Camera Settings")]
+    public Camera mainCamera;
     [SerializeField] private float cameraOffset = 5.0f;
 
     private Rigidbody playerRb;
@@ -27,9 +28,6 @@ public class PlayerController : MonoBehaviour
     private PlayerInputHandler inputHandler;
     private PlayerInventory playerInventory;
     private PlayerHealth playerHealth;
-    private EmergencyUIHandler emergencyUIHandler;
-
-    public Camera mainCamera;
 
     private Transform playerTransform;
 
@@ -78,7 +76,6 @@ public class PlayerController : MonoBehaviour
         playerRb = GetComponent<Rigidbody>();
         playerInventory = GetComponent<PlayerInventory>();
         playerHealth = GetComponent<PlayerHealth>();
-        emergencyUIHandler = GetComponent<EmergencyUIHandler>();
     }
     
     //Start is called before the first frame update
@@ -145,35 +142,35 @@ public class PlayerController : MonoBehaviour
                 }
             }
 
-            if (healInput && !hasHealed)
+            if (healInput && !hasHealed) // Check if the heal input is pressed and the player has not healed yet
             {
                 hasHealed = true; // Prevent use of heal ore more than once per press 
                 playerHealth.UseHealthOre(); // Use health ore to heal colonist
                 Debug.Log("Has hit heal button");
             }
-            else if (!healInput)
+            else if (!healInput) // Check if the heal input is released
             {
                 hasHealed = false; // Allow an emergency/region to be selected
             }
 
-            if (ejectInput && !hasEjected)
+            if (ejectInput && !hasEjected) // Check if the eject input is pressed and the player has not ejected yet
             {
-                Eject();
+                Eject(); // Eject colonist
                 hasEjected = true; // Prevent multiple colonists from being ejected
             }
-            else if (!ejectInput)
+            else if (!ejectInput) // Check if the eject input is released
             {
                 hasEjected = false; // Allow another colonist to be ejected
             }
 
-            if (quitInput)
+            if (quitInput) // Check if the quit input is pressed
             {
-                Application.Quit();
+                Application.Quit(); // Quit the application
             }
         }
     }
 
-    void HandleMovement()
+    void HandleMovement() // Method to handle player movement
     {
         float speed = moveSpeed;
         Vector3 camOffset = new Vector3(0f, cameraOffset, 0f);
@@ -182,7 +179,7 @@ public class PlayerController : MonoBehaviour
         mainCamera.transform.localPosition = playerTransform.position + camOffset;
     }
 
-    void HandleRotation()
+    void HandleRotation() // Method to handle player rotation
     {
         Vector3 directionToFace = MousePos - playerTransform.position;
         float angle = (180 / Mathf.PI) * Mathf.Atan2(directionToFace.z, directionToFace.x) - 90;
@@ -191,7 +188,7 @@ public class PlayerController : MonoBehaviour
         Debug.DrawLine(playerTransform.position, MousePos, Color.green, Time.deltaTime);        
     }
 
-    void HandleYPosition()
+    void HandleYPosition() // Method to handle player y position
     {
         Vector3 desiredPosition = new Vector3(playerTransform.position.x, yPosition, playerTransform.position.z);
 
@@ -201,7 +198,7 @@ public class PlayerController : MonoBehaviour
         }
     }
 
-    void Eject()
+    void Eject() // Method to eject colonist
     {
         playerInventory.EjectColonist();
     }
