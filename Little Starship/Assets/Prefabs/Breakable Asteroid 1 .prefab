@@ -99,12 +99,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 53a2affc15a3d5a48a766adcdaa9e8b5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  fractureForce: 1000
+  fractureForce: 5000
   fracturedVersion: {fileID: 2307804232641417724, guid: e9413d865cfb44d4a939cf0d67433c6e,
     type: 3}
   beingHeld: 0
-  timeBeforeFade: 3
-  fadeDuration: 3
   dropableHealthOre:
   - {fileID: 3485580719668710970, guid: f426440dda5bd264787fe1f71fc1a7e7, type: 3}
   - {fileID: 7896433140463822503, guid: 4aadbd31db6070a4b8fe8220736e11d4, type: 3}
