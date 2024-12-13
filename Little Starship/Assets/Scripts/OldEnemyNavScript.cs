@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class EnemyBrain : MonoBehaviour
+public class OldEnemyNavScript : MonoBehaviour
 {
     private GameObject player;
     private Transform playerLocation;
