@@ -147,8 +147,8 @@ public class PlayerController : MonoBehaviour
 
             if (healInput && !hasHealed)
             {
-                hasHealed = true; // Prevent use of heal ore more than once per press
-
+                hasHealed = true; // Prevent use of heal ore more than once per press 
+                playerHealth.UseHealthOre(); // Use health ore to heal colonist
                 Debug.Log("Has hit heal button");
             }
             else if (!healInput)
