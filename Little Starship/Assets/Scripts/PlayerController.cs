@@ -38,14 +38,14 @@ public class PlayerController : MonoBehaviour
     public bool grabInput;
     private float cycleInput;
     private float scrollInput;
-    private bool selectInput;
+    private bool healInput;
     private bool ejectInput;
     private bool quitInput;
 
     private float timeOfLastCycle = 0f;
     private float timeOfLastScroll = 0f;
 
-    private bool hasSelected = false; // Prevent multiple selections on a single press
+    private bool hasHealed = false; // Prevent multiple selections on a single press
     private bool hasEjected = false;  // Prevent multiple ejections on a single press
 
     public bool CanGrab
@@ -97,7 +97,7 @@ public class PlayerController : MonoBehaviour
         grabInput = inputHandler.GrabInput;
         cycleInput = inputHandler.CycleInput;
         scrollInput = inputHandler.ScrollInput;
-        selectInput = inputHandler.SelectInput;
+        healInput = inputHandler.HealInput;
         ejectInput = inputHandler.EjectInput;
         quitInput = inputHandler.QuitInput;
     }
@@ -145,15 +145,15 @@ public class PlayerController : MonoBehaviour
                 }
             }
 
-            if (selectInput && !hasSelected)
+            if (healInput && !hasHealed)
             {
-                hasSelected = true; // Prevent an emergency/region from being selected multiple times
-
-                Debug.Log("Has hit select button");
+                hasHealed = true; // Prevent use of heal ore more than once per press 
+                playerHealth.UseHealthOre(); // Use health ore to heal colonist
+                Debug.Log("Has hit heal button");
             }
-            else if (!selectInput)
+            else if (!healInput)
             {
-                hasSelected = false; // Allow an emergency/region to be selected
+                hasHealed = false; // Allow an emergency/region to be selected
             }
 
             if (ejectInput && !hasEjected)
@@ -206,19 +206,34 @@ public class PlayerController : MonoBehaviour
         playerInventory.EjectColonist();
     }
 
-    private IEnumerator Drag()
+    private IEnumerator Drag() // Coroutine to drag objects
     {
-        if (grabInput)
+        if (grabInput) // Check if the grab input is held down
         {
-            Ray ray = mainCamera.ScreenPointToRay(curScreenPos);
-            Physics.Raycast(ray, out RaycastHit hit);
-            Transform hitTransform = hit.transform;
-            Rigidbody hitRb = hitTransform.gameObject.GetComponent<Rigidbody>();
-            while (grabInput)
+            Ray ray = mainCamera.ScreenPointToRay(curScreenPos); // Create a ray from the camera to the mouse position
+            if (Physics.Raycast(ray, out RaycastHit hit)) // Check if the raycast hits an object
             {
-                hitRb.velocity = (MousePos - hitTransform.position) * attractSpeed;
-                //hitRb.AddForce((MousePos - hitTransform.position) * attractSpeed);
-                yield return null;
+                Transform hitTransform = hit.transform; // Get the transform of the object hit
+                Rigidbody hitRb = hitTransform.gameObject.GetComponent<Rigidbody>(); // Get the rigidbody of the object hit
+                BreakableAsteroid asteroid = hitTransform.gameObject.GetComponent<BreakableAsteroid>(); // Get the asteroid component of the object hit (if it has one)
+                if (asteroid != null) // Check if the object hit is an asteroid
+                {
+                    asteroid.beingHeld = true; // Set the asteroid to being held
+                }
+                while (grabInput) // While the grab input is held down
+                {
+                    if (hitTransform == null || hitRb == null) // Check if the object or rigidbody is destroyed
+                    {
+                        yield break; // Exit the coroutine if the object is destroyed
+                    }
+
+                    hitRb.velocity = (MousePos - hitTransform.position) * attractSpeed; // Move the object towards the mouse position
+                    yield return null; // Wait for the next frame
+                }
+                if (asteroid != null) // Check if the object hit is an asteroid
+                {
+                    asteroid.beingHeld = false; // Set the asteroid to not being held
+                }
             }
         }
     }
