@@ -50,7 +50,10 @@ public class BreakableAsteroid : MonoBehaviour
 
             if (collision.gameObject.CompareTag("Enemy")) // If the object collided with an enemy kill the enemy
             {
-                collision.gameObject.GetComponent<EnemyBrain>().Kill(); // Kill the enemy
+                if (collision.gameObject.TryGetComponent<EnemyBrain>(out var enemyBrain)) // Try to get the EnemyBrain component
+                {
+                    enemyBrain.Kill(); // Kill the enemy if the component is found
+                }
             }
 
             DropItem(dropableHealthOre); // Drop a health ore item
