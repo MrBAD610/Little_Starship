@@ -180,7 +180,7 @@ GameObject:
   - component: {fileID: 8016558517066847746}
   - component: {fileID: 5520776624317671194}
   m_Layer: 7
-  m_Name: Dead Nebulite
+  m_Name: Dead Proto Nebulisk
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0

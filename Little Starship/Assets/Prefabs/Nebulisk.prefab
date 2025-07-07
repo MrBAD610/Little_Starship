@@ -129,7 +129,7 @@ GameObject:
   - component: {fileID: 3054561077877593674}
   - component: {fileID: 4738013156926081553}
   m_Layer: 0
-  m_Name: Nebulite
+  m_Name: Nebulisk
   m_TagString: Enemy
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -149,6 +149,7 @@ Transform:
   m_ConstrainProportionsScale: 0
   m_Children:
   - {fileID: 6057466757334293821}
+  - {fileID: 167954058060923881}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
 --- !u!135 &6957743756941401512
@@ -295,12 +296,12 @@ GameObject:
   - component: {fileID: 1470905029544094939}
   - component: {fileID: 2235820813940965831}
   m_Layer: 0
-  m_Name: Nebulite Stand In
+  m_Name: Nebulite Mesh
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!4 &6057466757334293821
 Transform:
   m_ObjectHideFlags: 0
@@ -784,3 +785,77 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
+--- !u!1001 &5013505782500197870
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    serializedVersion: 3
+    m_TransformParent: {fileID: 5464554816393604765}
+    m_Modifications:
+    - target: {fileID: 5172170459764229639, guid: 4acb05a1baf68594999836ce204926e6,
+        type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5172170459764229639, guid: 4acb05a1baf68594999836ce204926e6,
+        type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5172170459764229639, guid: 4acb05a1baf68594999836ce204926e6,
+        type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5172170459764229639, guid: 4acb05a1baf68594999836ce204926e6,
+        type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 5172170459764229639, guid: 4acb05a1baf68594999836ce204926e6,
+        type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5172170459764229639, guid: 4acb05a1baf68594999836ce204926e6,
+        type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5172170459764229639, guid: 4acb05a1baf68594999836ce204926e6,
+        type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5172170459764229639, guid: 4acb05a1baf68594999836ce204926e6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5172170459764229639, guid: 4acb05a1baf68594999836ce204926e6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5172170459764229639, guid: 4acb05a1baf68594999836ce204926e6,
+        type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 5516044286509210813, guid: 4acb05a1baf68594999836ce204926e6,
+        type: 3}
+      propertyPath: m_Name
+      value: Nebulisk_Alpha_V2
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+    m_RemovedGameObjects: []
+    m_AddedGameObjects: []
+    m_AddedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 4acb05a1baf68594999836ce204926e6, type: 3}
+--- !u!4 &167954058060923881 stripped
+Transform:
+  m_CorrespondingSourceObject: {fileID: 5172170459764229639, guid: 4acb05a1baf68594999836ce204926e6,
+    type: 3}
+  m_PrefabInstance: {fileID: 5013505782500197870}
+  m_PrefabAsset: {fileID: 0}
