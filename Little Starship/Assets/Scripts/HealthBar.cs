@@ -6,13 +6,14 @@ using UnityEngine.UI;
 public class HealthBar : MonoBehaviour
 {
     [Header("Health Bar Colors")]
+    [SerializeField] private Image barOutlineImage;
+    [SerializeField] private Image regularBarImage;
+    [SerializeField] private Image restorationBarImage;
     [SerializeField] private Color FullHealthColor = new Color(0.0f, 1.0f, 1.0f, 1.0f);
     [SerializeField] private Color LowHealthColor = new Color(1.0f, 0.0f, 0.0f, 1.0f);
 
     private PlayerHealth playerHealth;
-    private Image barOutlineImage;
-    private Image regularBarImage;
-    private Image restorationBarImage;
+    
 
     private void Awake() // Awake is called before Start and is used to initialize variables
     {

@@ -127,6 +127,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: bf2d045c074e6d44d8251e9047334b37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  barOutlineImage: {fileID: 8471970632357704162}
+  regularBarImage: {fileID: 2892258990920792464}
+  restorationBarImage: {fileID: 4614331840782324075}
   FullHealthColor: {r: 0, g: 1, b: 1, a: 1}
   LowHealthColor: {r: 1, g: 0, b: 0, a: 1}
 --- !u!1 &3839772422137169522

@@ -1,11 +1,11 @@
 {
   "dependencies": {
-    "com.autodesk.fbx": {
-      "version": "4.2.1",
-      "depth": 1,
-      "source": "registry",
+    "com.inspiaaa.unityhfsm": {
+      "version": "https://github.com/Inspiaaa/UnityHFSM.git",
+      "depth": 0,
+      "source": "git",
       "dependencies": {},
-      "url": "https://packages.unity.com"
+      "hash": "beb58daf989ec3b095a4c6ff627a58da736f8b81"
     },
     "com.unity.2d.animation": {
       "version": "9.1.2",
@@ -132,16 +132,6 @@
       "depth": 1,
       "source": "registry",
       "dependencies": {},
-      "url": "https://packages.unity.com"
-    },
-    "com.unity.formats.fbx": {
-      "version": "4.2.1",
-      "depth": 0,
-      "source": "registry",
-      "dependencies": {
-        "com.autodesk.fbx": "4.2.1",
-        "com.unity.timeline": "1.7.1"
-      },
       "url": "https://packages.unity.com"
     },
     "com.unity.ide.rider": {
