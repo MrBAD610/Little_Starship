@@ -11,7 +11,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 04b0a24eeb7d7c54c9185c17521c8741,
         type: 3}
       propertyPath: m_LocalPosition.x
-      value: -0.06
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 04b0a24eeb7d7c54c9185c17521c8741,
         type: 3}
@@ -21,7 +21,7 @@ PrefabInstance:
     - target: {fileID: -8679921383154817045, guid: 04b0a24eeb7d7c54c9185c17521c8741,
         type: 3}
       propertyPath: m_LocalPosition.z
-      value: -20.31
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -8679921383154817045, guid: 04b0a24eeb7d7c54c9185c17521c8741,
         type: 3}
@@ -68,6 +68,11 @@ PrefabInstance:
       propertyPath: m_Name
       value: Nebulisk_Alpha_V2
       objectReference: {fileID: 0}
+    - target: {fileID: 5866666021909216657, guid: 04b0a24eeb7d7c54c9185c17521c8741,
+        type: 3}
+      propertyPath: m_Controller
+      value: 
+      objectReference: {fileID: 9100000, guid: e21d08ec4fd5d8e4198e690f00018aaf, type: 2}
     m_RemovedComponents: []
     m_RemovedGameObjects: []
     m_AddedGameObjects: []
