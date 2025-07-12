@@ -9,6 +9,7 @@ public class EnemyBrain : MonoBehaviour
     private Transform playerLocation;
     private NavMeshAgent agent;
     private Transform agentLocation;
+    private Animator animator;
 
     private EnemyReferences enemyReferences;
 
@@ -39,6 +40,7 @@ public class EnemyBrain : MonoBehaviour
         enemyReferences = GameObject.Find("Enemy References").GetComponent<EnemyReferences>();
         player = enemyReferences.playerReference;
         agent = GetComponent<NavMeshAgent>();
+        animator = GetComponent<Animator>();
     }
 
     private void Start()
@@ -101,6 +103,7 @@ public class EnemyBrain : MonoBehaviour
         //Make sure enemy does not move
         agent.SetDestination(agentLocation.position);
         agentLocation.LookAt(playerLocation);
+        animator.Play("Attack");
     }
 
     private void UpdatePath()
