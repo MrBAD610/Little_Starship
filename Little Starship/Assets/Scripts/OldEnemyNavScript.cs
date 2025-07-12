@@ -3,11 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-<<<<<<<< HEAD:Little Starship/Assets/Scripts/EnemyBrain.cs
-public class EnemyBrain : MonoBehaviour
-========
 public class OldEnemyNavScript : MonoBehaviour
->>>>>>>> SmarterEnemyForBranchMerge:Little Starship/Assets/Scripts/OldEnemyNavScript.cs
 {
     private GameObject player;
     private Transform playerLocation;

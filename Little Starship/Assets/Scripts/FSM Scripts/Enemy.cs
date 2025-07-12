@@ -45,7 +45,7 @@ public class Enemy : MonoBehaviour
         EnemyFSM.AddState(EnemyState.Idle, new IdleState(false, this));
         EnemyFSM.AddState(EnemyState.Chase, new ChaseState(true, this, Player.transform));
         EnemyFSM.AddState(EnemyState.Attack, new AttackState(true, this, OnAttack));
-        EnemyFSM.SetStartState(EnemyState.Idle);
+        //EnemyFSM.SetStartState(EnemyState.Idle);
 
         // Chase Transitions
         EnemyFSM.AddTriggerTransition(StateEvent.DetectPlayer, new Transition<EnemyState>(EnemyState.Idle, EnemyState.Chase));
