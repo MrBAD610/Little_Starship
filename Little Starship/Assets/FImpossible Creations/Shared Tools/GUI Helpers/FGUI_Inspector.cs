@@ -21,29 +21,6 @@ namespace FIMSpace.FEditor
         public static Object LastObjSelected;
         public static GameObject LastGameObjectSelected;
 
-
-        /// <summary> Since remembering in which EditorGUI, EditorGUILayout, or EditorGUIUtility, or  GUILayoutUtility ahhh... in which if these classes you will find the desired variable is so confusing ¯\_(ツ)_/¯ each time when trying finding it, ending in googling for forums post with it </summary>
-        public static float InspectorViewWidth()
-        {
-#if UNITY_EDITOR
-            return EditorGUIUtility.currentViewWidth;
-#else
-            return 0f;
-#endif
-
-        }
-
-        public static bool IsRightMouseButton()
-        {
-            if (UnityEngine.Event.current == null) return false;
-
-            if (UnityEngine.Event.current.type == UnityEngine.EventType.Used)
-                if (UnityEngine.Event.current.button == 1 || UnityEngine.Event.current.control)
-                    return true;
-
-            return false;
-        }
-
         public static void HeaderBox(ref bool foldout, string title, bool frame, Texture icon = null, int height = 20, int iconsSize = 19, bool big = false)
         {
             if (frame) EditorGUILayout.BeginHorizontal(FGUI_Resources.HeaderBoxStyle); else EditorGUILayout.BeginHorizontal();
@@ -201,7 +178,7 @@ namespace FIMSpace.FEditor
         public static GUIStyle Style(Color bgColor, int off = -1)
         {
             GUIStyle newStyle = new GUIStyle(GUI.skin.box);
-            if (off < 0) { if (Screen.dpi != 120) newStyle.border = new RectOffset(off, off, off, off); else if (!displayedDPIWarning) { /*Debug.Log("<b>[HEY! UNITY DEVELOPER!]</b> It seems you have setted up incorrect DPI settings for unity editor. Check <b>Unity.exe -> Properties -> Compatibility -> Change DPI Settings -> Replace Scaling -> System / System (Upgraded)</b> And restart Unity Editor.");*/ displayedDPIWarning = true; } }
+            if (off < 0) { if (Screen.dpi != 120) newStyle.border = new RectOffset(off, off, off, off); else if (!displayedDPIWarning) { Debug.Log("<b>[HEY! UNITY DEVELOPER!]</b> It seems you have setted up incorrect DPI settings for unity editor. Check <b>Unity.exe -> Properties -> Compatibility -> Change DPI Settings -> Replace Scaling -> System / System (Upgraded)</b> And restart Unity Editor."); displayedDPIWarning = true; } }
             else newStyle.border = new RectOffset(off, off, off, off);
 
             Color[] solidColor = new Color[1] { bgColor };

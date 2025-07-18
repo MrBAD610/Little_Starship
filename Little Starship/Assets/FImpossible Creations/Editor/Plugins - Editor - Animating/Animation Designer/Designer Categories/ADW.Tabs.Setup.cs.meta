@@ -1,0 +1,19 @@
+fileFormatVersion: 2
+guid: b0da919b896b2b240bf47bb079942e51
+MonoImporter:
+  externalObjects: {}
+  serializedVersion: 2
+  defaultReferences: []
+  executionOrder: 0
+  icon: {instanceID: 0}
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
+AssetOrigin:
+  serializedVersion: 1
+  productId: 210513
+  packageName: Animation Designer
+  packageVersion: 1.2.4
+  assetPath: Assets/FImpossible Creations/Editor/Plugins - Editor - Animating/Animation
+    Designer/Designer Categories/ADW.Tabs.Setup.cs
+  uploadId: 681199

@@ -1333,7 +1333,7 @@ return 1f;
                             if (prefabRef.Prefab.transform.rotation != Quaternion.identity)
                             {
                                 EditorGUILayout.BeginVertical();
-                                EditorGUILayout.HelpBox("Prefab rotation is not 0,0,0!", UnityEditor.MessageType.None);
+                                EditorGUILayout.HelpBox("Prefab rotation is not 0,0,0!", MessageType.None);
                                 if (GUILayout.Button(new GUIContent("FIX", "Setting prefab rotation to 0,0,0 but you can use rotation offset for advanced adjustments for spawning\nbut it's recommended to set 0,0,0 to avoid some unwanted not clear rotations"))) { prefabRef.Prefab.transform.rotation = Quaternion.identity; AssetDatabase.SaveAssets(); }
                                 EditorGUILayout.EndVertical();
                             }

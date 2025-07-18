@@ -27,10 +27,17 @@ namespace FIMSpace
             filter = new ContactFilter2D();
             filter.useTriggers = false;
             filter.useDepth = false;
+
+#if UNITY_2019_1_OR_NEWER
             r = new RaycastHit2D[1];
+#endif
+
         }
 
+#if UNITY_2019_1_OR_NEWER
         private RaycastHit2D[] r;
+#endif
+
         public override bool PushIfInside(ref Vector3 segmentPosition, float segmentRadius, Vector3 segmentOffset)
         {
             if (Is2D == false)
@@ -44,9 +51,7 @@ namespace FIMSpace
                     closest = Physics.ClosestPoint(positionOffsetted, Mesh, Mesh.transform.position, Mesh.transform.rotation);
                     if (Vector3.Distance(closest, positionOffsetted) > segmentRadius * 1.01f) return false;
 
-                    Vector3 dir = (closest - positionOffsetted);
-                    if (dir == Vector3.zero) return false;
-
+                    Vector2 dir = (closest - positionOffsetted);
                     RaycastHit meshHit;
                     Mesh.Raycast(new Ray(positionOffsetted, dir.normalized), out meshHit, segmentRadius * castMul);
 

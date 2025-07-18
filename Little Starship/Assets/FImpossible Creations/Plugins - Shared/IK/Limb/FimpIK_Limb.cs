@@ -104,17 +104,7 @@ namespace FIMSpace.FTools
                 case FIK_HintMode.OnGoal: return Vector3.LerpUnclamped(bendNormal, lateEndBoneRotation * EndIKBone.right, 0.5f);
                 
                 case FIK_HintMode.UnityHumanoidIK:
-
-                    if( HumanoidAnimator )
-                    {
-                        HumanoidAnimator.logWarnings = false;
-                        Vector3 nrm = CalculateElbowNormalToPosition( HumanoidAnimator.GetIKHintPosition( IsRight ? AvatarIKHint.RightKnee : AvatarIKHint.LeftKnee ) );
-#if UNITY_EDITOR
-                        HumanoidAnimator.logWarnings = true;
-#endif
-                        return nrm;
-                    }
-
+                    if (HumanoidAnimator) return CalculateElbowNormalToPosition( HumanoidAnimator.GetIKHintPosition(IsRight ? AvatarIKHint.RightKnee : AvatarIKHint.LeftKnee) );
                     break;
             }
 
