@@ -8,8 +8,12 @@ public class EnemyBrain : MonoBehaviour
     private GameObject player;
     private Transform playerLocation;
     private NavMeshAgent agent;
+    //private Rigidbody enemyRigidbody;
     private Transform agentLocation;
     private Animator animator;
+
+    private int hash_MovementVelocity;
+    private int hash_IsMoving;
 
     private EnemyReferences enemyReferences;
 
@@ -40,8 +44,11 @@ public class EnemyBrain : MonoBehaviour
         enemyReferences = GameObject.Find("Enemy References").GetComponent<EnemyReferences>();
         player = enemyReferences.playerReference;
         agent = GetComponent<NavMeshAgent>();
+        //enemyRigidbody = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
-    }
+        hash_MovementVelocity = Animator.StringToHash("MovementVelocity");
+        hash_IsMoving = Animator.StringToHash("IsMoving");
+}
 
     private void Start()
     {
@@ -58,6 +65,9 @@ public class EnemyBrain : MonoBehaviour
         if (!playerInSightRange && !playerInAttackRange) Patroling();
         if (playerInSightRange && !playerInAttackRange) ChasePlayer();
         if (playerInSightRange && playerInAttackRange) AttackPlayer();
+
+        animator.SetFloat(hash_MovementVelocity, agent.velocity.magnitude);
+        animator.SetBool(hash_IsMoving, agent.velocity.magnitude > 0.1f);
     }
 
     private void Patroling()
