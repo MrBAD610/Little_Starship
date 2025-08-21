@@ -171,26 +171,33 @@ public class NebuliskRagdollBuilder : MonoBehaviour
                          Vector3 aimWorldPos, float centerBias = 0.25f)
     {
         var col = t.GetComponent<CapsuleCollider>() ?? t.gameObject.AddComponent<CapsuleCollider>();
-
-        // Choose which local axis the capsule runs along (X=0, Y=1, Z=2)
         var (axis, localUnit) = DominantAxisTo(t, aimWorldPos);
         col.direction = axis;
 
-        // Height: convert target world length to local units along the capsule axis
+        // World → local conversions
         float axisScale = Mathf.Max(0.0001f, AxisLocalScale(t, axis));
-        float localHeight = Mathf.Max(desiredWorldLength / axisScale, 0.0f);
+        float perpScale = Mathf.Max(0.0001f, PerpMaxScale(t, axis));
 
-        // Radius: convert target world radius to local units using the **perpendicular** scale
-        float perpScale = Mathf.Max(0.0001f, PerpMaxScale(t, axis)); // see PerpMaxScale in your script
-        float localRadius = Mathf.Max(0.002f, desiredWorldRadius / perpScale);
+        float localHeightFromLen = Mathf.Max(desiredWorldLength / axisScale, minCapsuleLength / axisScale);
+        float localRadiusRaw = Mathf.Max(0.002f, desiredWorldRadius / perpScale);
 
-        // Unity requires height >= 2*radius
-        localHeight = Mathf.Max(localHeight, localRadius * 2f);
+        float localHeight, localRadius;
+        if (prioritizeLengthOverRadius)
+        {
+            // Height is authoritative; clamp radius to ≤ height/2 - epsilon
+            localHeight = localHeightFromLen;
+            float maxRadius = Mathf.Max(0.001f, localHeight * 0.5f - 1e-4f);
+            localRadius = Mathf.Min(localRadiusRaw, maxRadius);
+        }
+        else
+        {
+            // Old behavior: allow radius to push height up to keep height ≥ 2*radius
+            localRadius = localRadiusRaw;
+            localHeight = Mathf.Max(localHeightFromLen, localRadius * 2f);
+        }
 
         col.height = localHeight;
         col.radius = localRadius;
-
-        // Bias center a bit toward the child/end along the capsule axis (purely visual/fit)
         col.center = localUnit.normalized * (localHeight * centerBias * 0.5f);
     }
 
