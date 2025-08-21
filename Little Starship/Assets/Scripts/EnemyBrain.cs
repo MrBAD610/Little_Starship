@@ -39,6 +39,14 @@ public class EnemyBrain : MonoBehaviour
     public float sightRange, attackRange;
     public bool playerInSightRange, playerInAttackRange;
 
+    private NebuliskRagdollController ragdoll;
+
+    [Header("Ragdoll Death")]
+    public bool ragdollOnDeath = true;
+    public float deathImpulse = 8f;         // strength of the impulse if you provide a hit direction
+    public float despawnDelay = 10f;        // seconds before destroying the ragdolled body (<=0 keeps it)
+    private bool isDead;
+
     private void Awake()
     {
         enemyReferences = GameObject.Find("Enemy References").GetComponent<EnemyReferences>();
@@ -46,6 +54,7 @@ public class EnemyBrain : MonoBehaviour
         agent = GetComponent<NavMeshAgent>();
         //enemyRigidbody = GetComponent<Rigidbody>();
         animator = GetComponent<Animator>();
+        ragdoll = GetComponent<NebuliskRagdollController>() ?? GetComponentInParent<NebuliskRagdollController>();
         hash_MovementVelocity = Animator.StringToHash("MovementVelocity");
         hash_IsMoving = Animator.StringToHash("IsMoving");
 }
@@ -126,6 +135,40 @@ public class EnemyBrain : MonoBehaviour
         }
     }
 
+    public void Kill()                                  // old signature still works
+    {
+        if (ragdollOnDeath && ragdoll != null) KillAsRagdoll(transform.position, Vector3.zero, false);
+        else
+        {
+            if (DeadEnemy) Instantiate(DeadEnemy, transform.position, transform.rotation);
+            Destroy(gameObject);
+        }
+    }
+
+    public void Kill(Vector3 hitPoint, Vector3 hitDirection) // call this if you have impact info
+    {
+        if (ragdollOnDeath && ragdoll != null) KillAsRagdoll(hitPoint, hitDirection.normalized * deathImpulse, true);
+        else Kill(); // fall back
+    }
+
+    private void KillAsRagdoll(Vector3 hitPoint, Vector3 impulse, bool useImpulse)
+    {
+        if (isDead) return;
+        isDead = true;
+
+        // Stop AI/nav immediately so it doesn't fight physics
+        if (agent) agent.enabled = false;
+        enabled = false; // stop EnemyBrain updates
+
+        // Flip to ragdoll (controller also disables Animator and FImpossible animators)
+        if (useImpulse) ragdoll.EnterRagdollWithImpulse(hitPoint, impulse);
+        else ragdoll.EnterRagdoll();
+
+        // Despawn after a delay (optional)
+        if (despawnDelay > 0f) Destroy(gameObject, despawnDelay);
+    }
+
+
     private void OnDrawGizmosSelected()
     {
         if (transform == null) return;
@@ -137,9 +180,9 @@ public class EnemyBrain : MonoBehaviour
         Gizmos.DrawWireSphere(transform.position, sightRange);
     }
 
-    public void Kill() // Function to kill the enemy
-    {
-        Instantiate(DeadEnemy, transform.position, transform.rotation); // Spawn in the dead enemy
-        Destroy(gameObject); // Destroy the object to stop it getting in the way
-    }
+    //public void Kill() // Function to kill the enemy
+    //{
+    //    Instantiate(DeadEnemy, transform.position, transform.rotation); // Spawn in the dead enemy
+    //    Destroy(gameObject); // Destroy the object to stop it getting in the way
+    //}
 }

@@ -38,7 +38,7 @@ public class NebuliskRagdollBuilder : MonoBehaviour
     public bool stripPhysicsFromEndBones = true;
 
     [Header("Spine Geometry & Joints")]
-    public float spineRadius = 0.06f;       // now purely radius intent
+    public float spineRadius = 0.06f;       // radius intent only
     public float spineLengthScale = 0.9f;   // scales measured spine length only
     // Legacy per-segment masses (used if useTotalMass=false)
     public float spineRootMass = 0.7f;
@@ -67,7 +67,7 @@ public class NebuliskRagdollBuilder : MonoBehaviour
         new []{"backleg0_Left","backleg1_Left"},
         new []{"backleg0_Right","backleg1_Right"},
     };
-    public float legRadius = 0.03f;  // now purely radius intent
+    public float legRadius = 0.03f;  // radius intent only
     // Legacy masses when not proportional:
     public float leg0Mass = 0.22f;
     public float leg1Mass = 0.12f;
@@ -90,6 +90,10 @@ public class NebuliskRagdollBuilder : MonoBehaviour
     [Header("Gravity Toggle")]
     [Tooltip("If enabled, all ragdoll rigidbodies will use gravity. You can switch this at runtime or in the editor.")]
     public bool gravityEnabled = true;
+
+    [Header("Auto-Add & Validation")]
+    [Tooltip("When true, logs each component that gets auto-added during validation.")]
+    public bool logAutoAdds = true;
 
     // ---------- Deep name lookup cache ----------
     Dictionary<string, Transform> nameToTransform;
@@ -148,7 +152,7 @@ public class NebuliskRagdollBuilder : MonoBehaviour
     {
         var s = t.lossyScale;
         float ax = Mathf.Abs(s.x), ay = Mathf.Abs(s.y), az = Mathf.Abs(s.z);
-        if (axis == 0) return Mathf.Max(ay, az);   // capsule along X ⇒ radius lives in Y/Z
+        if (axis == 0) return Mathf.Max(ay, az);   // capsule along X ⇒ radius in Y/Z
         if (axis == 1) return Mathf.Max(ax, az);   // along Y ⇒ radius in X/Z
         return Mathf.Max(ax, ay);                  // along Z ⇒ radius in X/Y
     }
@@ -161,9 +165,7 @@ public class NebuliskRagdollBuilder : MonoBehaviour
 
         if (end) return (Vector3.Distance(bone.position, end.position), end.position);
         if (fallbackOther) return (Vector3.Distance(bone.position, fallbackOther.position), fallbackOther.position);
-
-        // Last resort: guess along current forward
-        return (defaultLen, bone.position + bone.forward * defaultLen);
+        return (defaultLen, bone.position + bone.forward * defaultLen); // last resort
     }
 
     // Smart capsule builder that chooses axis, converts world→local height/radius, and biases center.
@@ -184,14 +186,14 @@ public class NebuliskRagdollBuilder : MonoBehaviour
         float localHeight, localRadius;
         if (prioritizeLengthOverRadius)
         {
-            // Height is authoritative; clamp radius to ≤ height/2 - epsilon
+            // Height authoritative; clamp radius to ≤ height/2
             localHeight = localHeightFromLen;
             float maxRadius = Mathf.Max(0.001f, localHeight * 0.5f - 1e-4f);
             localRadius = Mathf.Min(localRadiusRaw, maxRadius);
         }
         else
         {
-            // Old behavior: allow radius to push height up to keep height ≥ 2*radius
+            // Allow radius to push height up
             localRadius = localRadiusRaw;
             localHeight = Mathf.Max(localHeightFromLen, localRadius * 2f);
         }
@@ -205,23 +207,42 @@ public class NebuliskRagdollBuilder : MonoBehaviour
     void StripEndBonePhysics(Transform t)
     {
         if (!t) return;
-        var rb = t.GetComponent<Rigidbody>(); if (rb) DestroyImmediate(rb, true);
-        foreach (var col in t.GetComponents<Collider>()) DestroyImmediate(col, true);
-        foreach (var j in t.GetComponents<Joint>()) DestroyImmediate(j, true);
+        var rb = t.GetComponent<Rigidbody>(); if (rb)
+        {
+#if UNITY_EDITOR
+            DestroyImmediate(rb, true);
+#else
+            Destroy(rb);
+#endif
+        }
+        foreach (var col in t.GetComponents<Collider>())
+        {
+#if UNITY_EDITOR
+            DestroyImmediate(col, true);
+#else
+            Destroy(col);
+#endif
+        }
+        foreach (var j in t.GetComponents<Joint>())
+        {
+#if UNITY_EDITOR
+            DestroyImmediate(j, true);
+#else
+            Destroy(j);
+#endif
+        }
     }
 
     void SanitizeAllEndBones(Transform[] spine)
     {
         if (!stripPhysicsFromEndBones) return;
 
-        // spine ends (e.g., spine8_end)
         foreach (var s in spine)
         {
             var end = FindEndChild(s);
             if (end) StripEndBonePhysics(end);
         }
 
-        // head/jaw ends
         var headT = FindT(headName);
         if (headT)
         {
@@ -233,7 +254,6 @@ public class NebuliskRagdollBuilder : MonoBehaviour
             var jawEnd = FindEndChild(jawT); if (jawEnd) StripEndBonePhysics(jawEnd);
         }
 
-        // leg tip ends (leg1_*_end)
         foreach (var pair in legPairs)
         {
             var tip = FindT(pair[1]);
@@ -269,28 +289,43 @@ public class NebuliskRagdollBuilder : MonoBehaviour
         return fallback;
     }
 
+    // SAFER: adds joint if missing, ensures child RB, ensures valid parent RB, avoids chained GetComponent<>().
     ConfigurableJoint CJ_RotOnly(Transform child, Rigidbody parentRB,
                                  float pitch, float side, float twist, float spring, float damper)
     {
-        var cj = child.GetComponent<ConfigurableJoint>() ?? child.gameObject.AddComponent<ConfigurableJoint>();
-
-        // Guard: never allow self-connection; try to auto-fix if needed
+        // Ensure child has RB
         var childRB = child.GetComponent<Rigidbody>();
-        if (parentRB == null || parentRB == childRB)
-        {
-            parentRB = FindAncestorDifferentRB(child, null);
-            if (parentRB == null)
-            {
-                Debug.LogError($"[NebuliskRagdollBuilder] No valid parent Rigidbody for joint on {child.GetHierarchyPath()} – skipping joint.");
+        if (!childRB) childRB = AddRB(child, minRBMass);
+
+        // Create or get joint
+        ConfigurableJoint cj = child.GetComponent<ConfigurableJoint>();
 #if UNITY_EDITOR
-                DestroyImmediate(cj, true);
+        if (!cj) cj = Undo.AddComponent<ConfigurableJoint>(child.gameObject);
 #else
-                Destroy(cj);
+        if (!cj) cj = child.gameObject.AddComponent<ConfigurableJoint>();
 #endif
-                return null;
-            }
+        if (!cj)
+        {
+            Debug.LogError($"[NebuliskRagdollBuilder] Failed to add ConfigurableJoint on {child.GetHierarchyPath()}.");
+            return null;
         }
 
+        // Resolve valid parent RB (not self)
+        if (parentRB == null || parentRB == childRB)
+            parentRB = FindAncestorDifferentRB(child, parentRB);
+
+        if (!parentRB)
+        {
+            Debug.LogError($"[NebuliskRagdollBuilder] No valid parent Rigidbody for joint on {child.GetHierarchyPath()} – skipping joint.");
+#if UNITY_EDITOR
+            DestroyImmediate(cj, true);
+#else
+            Destroy(cj);
+#endif
+            return null;
+        }
+
+        // Configure joint
         cj.connectedBody = parentRB;
         cj.xMotion = cj.yMotion = cj.zMotion = ConfigurableJointMotion.Locked;
         cj.angularXMotion = ConfigurableJointMotion.Limited;
@@ -311,6 +346,7 @@ public class NebuliskRagdollBuilder : MonoBehaviour
         cj.projectionMode = useProjection ? JointProjectionMode.PositionAndRotation : JointProjectionMode.None;
         cj.projectionDistance = projDistance;
         cj.projectionAngle = projAngle;
+
         return cj;
     }
 
@@ -333,6 +369,214 @@ public class NebuliskRagdollBuilder : MonoBehaviour
 
     [ContextMenu("Disable Gravity (All RBs)")]
     void CtxDisableGravity() => SetGravity(false);
+
+    // --------- Auto-Add helpers ---------
+    T Require<T>(Transform t, out bool added) where T : Component
+    {
+        var c = t.GetComponent<T>();
+        if (!c)
+        {
+#if UNITY_EDITOR
+            c = Undo.AddComponent<T>(t.gameObject);
+#else
+            c = t.gameObject.AddComponent<T>();
+#endif
+            added = true;
+            if (logAutoAdds) Debug.Log($"[NebuliskRagdollBuilder] +{typeof(T).Name} on {t.GetHierarchyPath()}");
+        }
+        else added = false;
+        return c;
+    }
+
+    void EnsureRB(Transform t, float massHint)
+    {
+        bool added;
+        var rb = Require<Rigidbody>(t, out added);
+        if (added)
+        {
+            rb.mass = Mathf.Max(minRBMass, massHint);
+            rb.interpolation = RigidbodyInterpolation.Interpolate;
+            rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
+            rb.solverIterations = Mathf.Max(6, rb.solverIterations);
+            rb.solverVelocityIterations = Mathf.Max(6, rb.solverVelocityIterations);
+            rb.useGravity = gravityEnabled;
+        }
+    }
+
+    void EnsureCapsule(Transform t, float radiusWorld, float lengthWorld, Vector3 aimWorldPos)
+    {
+        bool added;
+        var col = Require<CapsuleCollider>(t, out added);
+        if (added)
+        {
+            // Size only when newly created to avoid clobbering user-tuned values
+            AddCapsuleSmart(t, radiusWorld, lengthWorld, aimWorldPos, 0.25f);
+        }
+    }
+
+    [ContextMenu("Validate Missing (Dry Run)")]
+    public void ValidateMissingDryRun() => ValidateMissing(true);
+
+    [ContextMenu("Validate & Fix Missing")]
+    public void ValidateAndFix() => ValidateMissing(false);
+
+    void ValidateMissing(bool dryRun)
+    {
+        BuildNameLookup();
+
+        // Collect spine transforms (required)
+        Transform[] spine = new Transform[spineNames.Length];
+        for (int i = 0; i < spineNames.Length; i++)
+        {
+            var t = FindT(spineNames[i]);
+            if (!t) { Debug.LogError($"Missing spine bone '{spineNames[i]}'"); return; }
+            spine[i] = t;
+        }
+        var head = FindT(headName);
+        var jaw = FindT(jawName);
+
+        int adds = 0;
+        void CountOrDo(System.Action a) { if (dryRun) adds++; else a(); }
+
+        // Spine
+        for (int i = 0; i < spine.Length; i++)
+        {
+            var me = spine[i];
+            Transform next = (i < spine.Length - 1) ? spine[i + 1] : null;
+            Transform prev = (i > 0) ? spine[i - 1] : null;
+
+            var (segWorldLen, segAim) = MeasureToward(me, next ? next : prev, spineRadius * 2f);
+
+            if (!me.GetComponent<Rigidbody>()) CountOrDo(() => EnsureRB(me, (useTotalMass ? totalMass * spineFrac / Mathf.Max(1, spine.Length) : spineRootMass)));
+            if (!me.GetComponent<CapsuleCollider>()) CountOrDo(() => EnsureCapsule(me, spineRadius, segWorldLen * spineLengthScale, segAim));
+
+            if (i > 0 && !me.GetComponent<ConfigurableJoint>())
+            {
+                // NEW: Ensure parent has RB before wiring joint
+                var parentSpine = spine[i - 1];
+                if (!parentSpine.GetComponent<Rigidbody>())
+                    CountOrDo(() => EnsureRB(parentSpine, (useTotalMass ? totalMass * spineFrac / Mathf.Max(1, spine.Length) : spineRootMass)));
+
+                CountOrDo(() => CJ_RotOnly(me, parentSpine.GetComponent<Rigidbody>(),
+                                           spinePitch, spineSide, spineTwist, spineSpring, spineDamper));
+            }
+        }
+
+        // Head
+        if (head)
+        {
+            var (headLen, headAim) = MeasureToward(head, spine[0], spineRadius * 1.5f);
+            if (!head.GetComponent<Rigidbody>()) CountOrDo(() => EnsureRB(head, headMass));
+            if (!head.GetComponent<CapsuleCollider>()) CountOrDo(() => EnsureCapsule(head, spineRadius * 0.9f, headLen * 0.8f, headAim));
+
+            if (!head.GetComponent<ConfigurableJoint>())
+            {
+                // Ensure spine[0] RB exists
+                if (!spine[0].GetComponent<Rigidbody>())
+                    CountOrDo(() => EnsureRB(spine[0], spineRootMass));
+
+                CountOrDo(() => CJ_RotOnly(head, spine[0].GetComponent<Rigidbody>(),
+                                           Mathf.Min(12f, spinePitch), Mathf.Min(15f, spineSide), Mathf.Min(8f, spineTwist),
+                                           spineSpring, spineDamper));
+            }
+        }
+
+        // Jaw
+        if (jaw && buildJawHinge)
+        {
+            if (!jaw.GetComponent<Rigidbody>()) CountOrDo(() => EnsureRB(jaw, Mathf.Max(minRBMass, headMass * 0.25f)));
+            if (!jaw.GetComponent<CapsuleCollider>())
+            {
+                var (jawLen, jawAim) = MeasureToward(jaw, null, 0.08f);
+                CountOrDo(() => EnsureCapsule(jaw, spineRadius * 0.6f, jawLen, jawAim));
+            }
+            if (!jaw.GetComponent<HingeJoint>() && head && head.GetComponent<Rigidbody>())
+            {
+                CountOrDo(() =>
+                {
+#if UNITY_EDITOR
+                    var h = Undo.AddComponent<HingeJoint>(jaw.gameObject);
+#else
+                    var h = jaw.gameObject.AddComponent<HingeJoint>();
+#endif
+                    h.connectedBody = head.GetComponent<Rigidbody>();
+                    h.useLimits = true; h.limits = new JointLimits { min = jawOpenRange.x, max = jawOpenRange.y };
+                    h.useSpring = true; h.spring = new JointSpring { spring = 200f, damper = 8f, targetPosition = 0f };
+                });
+            }
+        }
+
+        // Legs
+        foreach (var pair in legPairs)
+        {
+            var root = FindT(pair[0]); var tip = FindT(pair[1]);
+            if (!root || !tip) continue;
+
+            float rootToTip = Vector3.Distance(root.position, tip.position);
+
+            // Determine parentRB for leg root
+            Rigidbody parentRB = null;
+            if (root.parent)
+            {
+                parentRB = root.parent.GetComponent<Rigidbody>();
+                if (!parentRB) parentRB = root.parent.GetComponentInParent<Rigidbody>();
+            }
+            if (!parentRB)
+            {
+                // Ensure spine root has RB and use it
+                if (!spine[0].GetComponent<Rigidbody>())
+                    CountOrDo(() => EnsureRB(spine[0], spineRootMass));
+                parentRB = spine[0].GetComponent<Rigidbody>();
+            }
+
+            // Root
+            if (!root.GetComponent<Rigidbody>()) CountOrDo(() => EnsureRB(root, leg0Mass));
+            if (!root.GetComponent<CapsuleCollider>()) CountOrDo(() => EnsureCapsule(root, legRadius, Mathf.Max(rootToTip * 0.55f, minCapsuleLength), tip.position));
+            if (!root.GetComponent<ConfigurableJoint>())
+                CountOrDo(() => CJ_RotOnly(root, parentRB, hipFlex, hipAbAd, hipTwist, 40f, 3f));
+
+            // Tip
+            if (!tip.GetComponent<Rigidbody>()) CountOrDo(() => EnsureRB(tip, leg1Mass));
+            if (!tip.GetComponent<CapsuleCollider>())
+            {
+                var (tipLen, tipAim) = MeasureToward(tip, null, rootToTip * 0.45f);
+                CountOrDo(() => EnsureCapsule(tip, legRadius * 0.9f, Mathf.Max(tipLen, minCapsuleLength), tipAim));
+            }
+            if (!tip.GetComponent<HingeJoint>())
+            {
+                CountOrDo(() =>
+                {
+#if UNITY_EDITOR
+                    var hj = Undo.AddComponent<HingeJoint>(tip.gameObject);
+#else
+                    var hj = tip.gameObject.AddComponent<HingeJoint>();
+#endif
+                    var rb0 = root.GetComponent<Rigidbody>();
+                    var rb1 = tip.GetComponent<Rigidbody>();
+                    if (rb0 == rb1)
+                    {
+#if UNITY_EDITOR
+                        Undo.DestroyObjectImmediate(hj);
+#else
+                        Destroy(hj);
+#endif
+                        Debug.LogError($"[NebuliskRagdollBuilder] Knee hinge would self-connect on {tip.GetHierarchyPath()} – skipped.");
+                    }
+                    else
+                    {
+                        hj.connectedBody = rb0;
+                        hj.useLimits = true; hj.limits = new JointLimits { min = kneeRange.x, max = kneeRange.y };
+                        hj.useSpring = true; hj.spring = new JointSpring { spring = 80f, damper = 6f, targetPosition = 0f };
+                        hj.enableCollision = false;
+                    }
+                });
+            }
+        }
+
+        Debug.Log(dryRun
+            ? $"[NebuliskRagdollBuilder] Validate (dry run): would add ~{adds} missing components."
+            : $"[NebuliskRagdollBuilder] Validate & Fix complete. Added any missing components (see log).");
+    }
 
     // --------- Build ---------
     public void Build()
@@ -410,8 +654,11 @@ public class NebuliskRagdollBuilder : MonoBehaviour
 
             if (i > 0)
             {
-                CJ_RotOnly(me, spine[i - 1].GetComponent<Rigidbody>(),
-                           spinePitch, spineSide, spineTwist, spineSpring, spineDamper);
+                // Ensure parent RB exists before joint (CJ_RotOnly also protects, but doing both is fine)
+                var parentRB = spine[i - 1].GetComponent<Rigidbody>();
+                if (!parentRB) parentRB = AddRB(spine[i - 1], spineMasses[i - 1]);
+
+                CJ_RotOnly(me, parentRB, spinePitch, spineSide, spineTwist, spineSpring, spineDamper);
             }
         }
 
@@ -421,7 +668,12 @@ public class NebuliskRagdollBuilder : MonoBehaviour
             var (headWorldLen, headAim) = MeasureToward(head, spine[0], spineRadius * 1.5f);
             AddCapsuleSmart(head, spineRadius * 0.9f, headWorldLen * 0.8f, headAim, 0.15f);
             var rbHead = AddRB(head, headMassFinal);
-            CJ_RotOnly(head, spine[0].GetComponent<Rigidbody>(),
+
+            // Ensure spine[0] RB exists
+            var spine0RB = spine[0].GetComponent<Rigidbody>();
+            if (!spine0RB) spine0RB = AddRB(spine[0], spineMasses.Length > 0 ? spineMasses[0] : spineRootMass);
+
+            CJ_RotOnly(head, spine0RB,
                        Mathf.Min(12f, spinePitch), Mathf.Min(15f, spineSide), Mathf.Min(8f, spineTwist),
                        spineSpring, spineDamper);
 
@@ -446,17 +698,28 @@ public class NebuliskRagdollBuilder : MonoBehaviour
             var root = FindT(pair[0]); var tip = FindT(pair[1]);
             if (!root || !tip) { Debug.LogWarning($"Missing leg bones '{pair[0]}' or '{pair[1]}'"); continue; }
 
-            var parentRB = root.parent ? (root.parent.GetComponent<Rigidbody>() ?? root.parent.GetComponentInParent<Rigidbody>()) : null;
-            if (!parentRB) parentRB = FindT(spineNames[0]).GetComponent<Rigidbody>();
+            // Parent RB for leg root
+            Rigidbody parentRB = null;
+            if (root.parent)
+            {
+                parentRB = root.parent.GetComponent<Rigidbody>();
+                if (!parentRB) parentRB = root.parent.GetComponentInParent<Rigidbody>();
+            }
+            if (!parentRB)
+            {
+                var sr = FindT(spineNames[0]);
+                if (sr && !sr.GetComponent<Rigidbody>()) AddRB(sr, spineRootMass);
+                parentRB = sr ? sr.GetComponent<Rigidbody>() : null;
+            }
 
             float rootToTip = Vector3.Distance(root.position, tip.position);
 
-            // Root: size toward tip (height purely from length; radius no longer influences height)
+            // Root: size & joint
             AddCapsuleSmart(root, legRadius, rootToTip * 0.55f, tip.position, 0.3f);
             var rb0 = AddRB(root, leg0MassFinal);
             CJ_RotOnly(root, parentRB, hipFlex, hipAbAd, hipTwist, 40f, 3f);
 
-            // Tip: size toward leg1_end if present (same decoupled behavior)
+            // Tip: size & hinge
             var (tipLen, tipAim) = MeasureToward(tip, null, rootToTip * 0.45f);
             AddCapsuleSmart(tip, legRadius * 0.9f, tipLen, tipAim, 0.3f);
             var rb1 = AddRB(tip, leg1MassFinal);
@@ -464,12 +727,12 @@ public class NebuliskRagdollBuilder : MonoBehaviour
             var hj = tip.GetComponent<HingeJoint>() ?? tip.gameObject.AddComponent<HingeJoint>();
             if (rb0 == rb1)
             {
-                Debug.LogError($"[NebuliskRagdollBuilder] Knee hinge would self-connect on {tip.GetHierarchyPath()} – skipping.");
 #if UNITY_EDITOR
                 DestroyImmediate(hj, true);
 #else
                 Destroy(hj);
 #endif
+                Debug.LogError($"[NebuliskRagdollBuilder] Knee hinge would self-connect on {tip.GetHierarchyPath()} – skipping.");
             }
             else
             {
@@ -514,6 +777,11 @@ public class NebuliskRagdollBuilder : MonoBehaviour
             if (GUILayout.Button("Enable Gravity Now")) { b.SetGravity(true); EditorUtility.SetDirty(b); }
             if (GUILayout.Button("Disable Gravity Now")) { b.SetGravity(false); EditorUtility.SetDirty(b); }
             EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Validate / Repair", EditorStyles.boldLabel);
+            if (GUILayout.Button("Validate Missing (Dry Run)")) b.ValidateMissingDryRun();
+            if (GUILayout.Button("Validate & Fix Missing")) b.ValidateAndFix();
 
             EditorGUILayout.Space();
             if (GUILayout.Button("Build / Rebuild Nebulisk Ragdoll"))
