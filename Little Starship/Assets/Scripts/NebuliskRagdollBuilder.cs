@@ -81,6 +81,10 @@ public class NebuliskRagdollBuilder : MonoBehaviour
     public float projDistance = 0.08f;
     public float projAngle = 10f;
 
+    [Header("Gravity Toggle")]
+    [Tooltip("If enabled, all ragdoll rigidbodies will use gravity. You can switch this at runtime or in the editor.")]
+    public bool gravityEnabled = true;
+
     // ---------- Deep name lookup cache ----------
     Dictionary<string, Transform> nameToTransform;
 
@@ -133,6 +137,16 @@ public class NebuliskRagdollBuilder : MonoBehaviour
         return axis == 0 ? Mathf.Abs(s.x) : axis == 1 ? Mathf.Abs(s.y) : Mathf.Abs(s.z);
     }
 
+    // For radius conversion, get the max scale in the plane perpendicular to the capsule axis.
+    float PerpMaxScale(Transform t, int axis)
+    {
+        var s = t.lossyScale;
+        float ax = Mathf.Abs(s.x), ay = Mathf.Abs(s.y), az = Mathf.Abs(s.z);
+        if (axis == 0) return Mathf.Max(ay, az);   // capsule along X ⇒ radius lives in Y/Z
+        if (axis == 1) return Mathf.Max(ax, az);   // along Y ⇒ radius in X/Z
+        return Mathf.Max(ax, ay);                  // along Z ⇒ radius in X/Y
+    }
+
     // Measure toward an end or fallback target; also return the aim position.
     (float worldLen, Vector3 targetWorldPos) MeasureToward(Transform bone, Transform fallbackOther, float defaultLen)
     {
@@ -146,20 +160,27 @@ public class NebuliskRagdollBuilder : MonoBehaviour
         return (defaultLen, bone.position + bone.forward * defaultLen);
     }
 
-    // Smart capsule builder that chooses axis, converts world→local height, and biases center.
+    // Smart capsule builder that chooses axis, converts world→local height/radius, and biases center.
     void AddCapsuleSmart(Transform t, float desiredWorldRadius, float desiredWorldLength,
                          Vector3 aimWorldPos, float centerBias = 0.25f)
     {
         var col = t.GetComponent<CapsuleCollider>() ?? t.gameObject.AddComponent<CapsuleCollider>();
-
         var (axis, localUnit) = DominantAxisTo(t, aimWorldPos);
         col.direction = axis;
 
+        // Height: world → local along capsule axis
         float axisScale = Mathf.Max(0.0001f, AxisLocalScale(t, axis));
         float localHeight = Mathf.Max(desiredWorldLength / axisScale, desiredWorldRadius * 2f);
 
+        // Radius: world → local in the perpendicular plane
+        float perpScale = Mathf.Max(0.0001f, PerpMaxScale(t, axis));
+        float localRadius = Mathf.Max(0.002f, desiredWorldRadius / perpScale);
+
+        // Ensure height >= diameter
+        localHeight = Mathf.Max(localHeight, localRadius * 2f);
+
         col.height = localHeight;
-        col.radius = Mathf.Max(0.005f, desiredWorldRadius);
+        col.radius = localRadius;
         col.center = localUnit.normalized * (localHeight * centerBias * 0.5f);
     }
 
@@ -214,13 +235,45 @@ public class NebuliskRagdollBuilder : MonoBehaviour
         rb.interpolation = RigidbodyInterpolation.Interpolate;
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
         rb.solverIterations = Mathf.Max(6, rb.solverIterations);
+        rb.solverVelocityIterations = Mathf.Max(6, rb.solverVelocityIterations);
+        rb.useGravity = gravityEnabled; // <-- NEW: respect global toggle on creation
         return rb;
+    }
+
+    // find the first ancestor with a different Rigidbody than the child (guard for self-connect).
+    Rigidbody FindAncestorDifferentRB(Transform child, Rigidbody fallback = null)
+    {
+        var self = child.GetComponent<Rigidbody>();
+        for (var p = child.parent; p; p = p.parent)
+        {
+            var rb = p.GetComponent<Rigidbody>();
+            if (rb && rb != self) return rb;
+        }
+        return fallback;
     }
 
     ConfigurableJoint CJ_RotOnly(Transform child, Rigidbody parentRB,
                                  float pitch, float side, float twist, float spring, float damper)
     {
         var cj = child.GetComponent<ConfigurableJoint>() ?? child.gameObject.AddComponent<ConfigurableJoint>();
+
+        // Guard: never allow self-connection; try to auto-fix if needed
+        var childRB = child.GetComponent<Rigidbody>();
+        if (parentRB == null || parentRB == childRB)
+        {
+            parentRB = FindAncestorDifferentRB(child, null);
+            if (parentRB == null)
+            {
+                Debug.LogError($"[NebuliskRagdollBuilder] No valid parent Rigidbody for joint on {child.GetHierarchyPath()} – skipping joint.");
+#if UNITY_EDITOR
+                DestroyImmediate(cj, true);
+#else
+                Destroy(cj);
+#endif
+                return null;
+            }
+        }
+
         cj.connectedBody = parentRB;
         cj.xMotion = cj.yMotion = cj.zMotion = ConfigurableJointMotion.Locked;
         cj.angularXMotion = ConfigurableJointMotion.Limited;
@@ -243,6 +296,28 @@ public class NebuliskRagdollBuilder : MonoBehaviour
         cj.projectionAngle = projAngle;
         return cj;
     }
+
+    // --------- Gravity control (public API) ---------
+    /// <summary>Sets gravity flag and applies it to all Rigidbodies under this builder.</summary>
+    public void SetGravity(bool enabled)
+    {
+        gravityEnabled = enabled;
+        ApplyGravityToAll(enabled);
+    }
+
+    /// <summary>Applies gravity state to all existing Rigidbodies in the ragdoll hierarchy.</summary>
+    public void ApplyGravityToAll(bool enabled)
+    {
+        var rbs = GetComponentsInChildren<Rigidbody>(true);
+        foreach (var rb in rbs)
+            if (rb) rb.useGravity = enabled;
+    }
+
+    [ContextMenu("Enable Gravity (All RBs)")]
+    void CtxEnableGravity() => SetGravity(true);
+
+    [ContextMenu("Disable Gravity (All RBs)")]
+    void CtxDisableGravity() => SetGravity(false);
 
     // --------- Build ---------
     public void Build()
@@ -370,14 +445,31 @@ public class NebuliskRagdollBuilder : MonoBehaviour
             var (tipLen, tipAim) = MeasureToward(tip, null, rootToTip * 0.45f);
             AddCapsuleSmart(tip, legRadius * 0.9f, tipLen, tipAim, 0.3f);
             var rb1 = AddRB(tip, leg1MassFinal);
+
             var hj = tip.GetComponent<HingeJoint>() ?? tip.gameObject.AddComponent<HingeJoint>();
-            hj.connectedBody = rb0;
-            hj.useLimits = true;
-            hj.limits = new JointLimits { min = kneeRange.x, max = kneeRange.y };
-            hj.useSpring = true;
-            hj.spring = new JointSpring { spring = 80f, damper = 6f, targetPosition = 0f };
-            hj.enableCollision = false;
+            // Guard against self-connection
+            if (rb0 == rb1)
+            {
+                Debug.LogError($"[NebuliskRagdollBuilder] Knee hinge would self-connect on {tip.GetHierarchyPath()} – skipping.");
+#if UNITY_EDITOR
+                DestroyImmediate(hj, true);
+#else
+                Destroy(hj);
+#endif
+            }
+            else
+            {
+                hj.connectedBody = rb0;
+                hj.useLimits = true;
+                hj.limits = new JointLimits { min = kneeRange.x, max = kneeRange.y };
+                hj.useSpring = true;
+                hj.spring = new JointSpring { spring = 80f, damper = 6f, targetPosition = 0f };
+                hj.enableCollision = false;
+            }
         }
+
+        // Ensure gravity setting is applied to any pre-existing RBs too
+        ApplyGravityToAll(gravityEnabled);
 
         Debug.Log(useTotalMass
             ? $"Nebulisk ragdoll built with proportional masses. totalMass={totalMass:0.##} kg (smart collider sizing; end bones for lengths: {useEndBonesForLength})"
@@ -391,8 +483,27 @@ public class NebuliskRagdollBuilder : MonoBehaviour
         public override void OnInspectorGUI()
         {
             base.OnInspectorGUI();
+
+            var b = (NebuliskRagdollBuilder)target;
+
+            EditorGUILayout.Space();
+            EditorGUILayout.LabelField("Ragdoll Gravity", EditorStyles.boldLabel);
+            bool newGravity = EditorGUILayout.Toggle("Enable Gravity", b.gravityEnabled);
+            if (newGravity != b.gravityEnabled)
+            {
+                Undo.RecordObject(b, "Toggle Ragdoll Gravity");
+                b.SetGravity(newGravity);
+                EditorUtility.SetDirty(b);
+            }
+
+            EditorGUILayout.BeginHorizontal();
+            if (GUILayout.Button("Enable Gravity Now")) { b.SetGravity(true); EditorUtility.SetDirty(b); }
+            if (GUILayout.Button("Disable Gravity Now")) { b.SetGravity(false); EditorUtility.SetDirty(b); }
+            EditorGUILayout.EndHorizontal();
+
+            EditorGUILayout.Space();
             if (GUILayout.Button("Build / Rebuild Nebulisk Ragdoll"))
-                (target as NebuliskRagdollBuilder).Build();
+                b.Build();
         }
     }
 #endif
