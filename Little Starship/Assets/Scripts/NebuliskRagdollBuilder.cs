@@ -38,8 +38,8 @@ public class NebuliskRagdollBuilder : MonoBehaviour
     public bool stripPhysicsFromEndBones = true;
 
     [Header("Spine Geometry & Joints")]
-    public float spineRadius = 0.06f;
-    public float spineLengthScale = 0.9f;
+    public float spineRadius = 0.06f;       // now purely radius intent
+    public float spineLengthScale = 0.9f;   // scales measured spine length only
     // Legacy per-segment masses (used if useTotalMass=false)
     public float spineRootMass = 0.7f;
     public float spineTailMass = 0.15f;
@@ -67,7 +67,7 @@ public class NebuliskRagdollBuilder : MonoBehaviour
         new []{"backleg0_Left","backleg1_Left"},
         new []{"backleg0_Right","backleg1_Right"},
     };
-    public float legRadius = 0.03f;
+    public float legRadius = 0.03f;  // now purely radius intent
     // Legacy masses when not proportional:
     public float leg0Mass = 0.22f;
     public float leg1Mass = 0.12f;
@@ -75,6 +75,12 @@ public class NebuliskRagdollBuilder : MonoBehaviour
     public float hipFlex = 45f;   // pitch (±)
     public float hipTwist = 10f;  // twist (±)
     public Vector2 kneeRange = new Vector2(0f, 90f); // hinge degrees
+
+    [Header("Collider Sizing")]
+    [Tooltip("If true, height comes from bone length and radius is clamped to ≤ height/2. If false, radius may push height up to keep height ≥ 2*radius.")]
+    public bool prioritizeLengthOverRadius = true;
+    [Tooltip("Minimum capsule length in world units to avoid degenerate colliders.")]
+    public float minCapsuleLength = 0.03f;
 
     [Header("Joint General")]
     public bool useProjection = true;
@@ -165,22 +171,26 @@ public class NebuliskRagdollBuilder : MonoBehaviour
                          Vector3 aimWorldPos, float centerBias = 0.25f)
     {
         var col = t.GetComponent<CapsuleCollider>() ?? t.gameObject.AddComponent<CapsuleCollider>();
+
+        // Choose which local axis the capsule runs along (X=0, Y=1, Z=2)
         var (axis, localUnit) = DominantAxisTo(t, aimWorldPos);
         col.direction = axis;
 
-        // Height: world → local along capsule axis
+        // Height: convert target world length to local units along the capsule axis
         float axisScale = Mathf.Max(0.0001f, AxisLocalScale(t, axis));
-        float localHeight = Mathf.Max(desiredWorldLength / axisScale, desiredWorldRadius * 2f);
+        float localHeight = Mathf.Max(desiredWorldLength / axisScale, 0.0f);
 
-        // Radius: world → local in the perpendicular plane
-        float perpScale = Mathf.Max(0.0001f, PerpMaxScale(t, axis));
+        // Radius: convert target world radius to local units using the **perpendicular** scale
+        float perpScale = Mathf.Max(0.0001f, PerpMaxScale(t, axis)); // see PerpMaxScale in your script
         float localRadius = Mathf.Max(0.002f, desiredWorldRadius / perpScale);
 
-        // Ensure height >= diameter
+        // Unity requires height >= 2*radius
         localHeight = Mathf.Max(localHeight, localRadius * 2f);
 
         col.height = localHeight;
         col.radius = localRadius;
+
+        // Bias center a bit toward the child/end along the capsule axis (purely visual/fit)
         col.center = localUnit.normalized * (localHeight * centerBias * 0.5f);
     }
 
@@ -236,7 +246,7 @@ public class NebuliskRagdollBuilder : MonoBehaviour
         rb.collisionDetectionMode = CollisionDetectionMode.ContinuousSpeculative;
         rb.solverIterations = Mathf.Max(6, rb.solverIterations);
         rb.solverVelocityIterations = Mathf.Max(6, rb.solverVelocityIterations);
-        rb.useGravity = gravityEnabled; // <-- NEW: respect global toggle on creation
+        rb.useGravity = gravityEnabled; // respect global toggle on creation
         return rb;
     }
 
@@ -298,14 +308,12 @@ public class NebuliskRagdollBuilder : MonoBehaviour
     }
 
     // --------- Gravity control (public API) ---------
-    /// <summary>Sets gravity flag and applies it to all Rigidbodies under this builder.</summary>
     public void SetGravity(bool enabled)
     {
         gravityEnabled = enabled;
         ApplyGravityToAll(enabled);
     }
 
-    /// <summary>Applies gravity state to all existing Rigidbodies in the ragdoll hierarchy.</summary>
     public void ApplyGravityToAll(bool enabled)
     {
         var rbs = GetComponentsInChildren<Rigidbody>(true);
@@ -436,18 +444,17 @@ public class NebuliskRagdollBuilder : MonoBehaviour
 
             float rootToTip = Vector3.Distance(root.position, tip.position);
 
-            // Root: size toward tip
-            AddCapsuleSmart(root, legRadius, Mathf.Max(rootToTip * 0.55f, legRadius * 2f), tip.position, 0.3f);
+            // Root: size toward tip (height purely from length; radius no longer influences height)
+            AddCapsuleSmart(root, legRadius, rootToTip * 0.55f, tip.position, 0.3f);
             var rb0 = AddRB(root, leg0MassFinal);
             CJ_RotOnly(root, parentRB, hipFlex, hipAbAd, hipTwist, 40f, 3f);
 
-            // Tip: size toward leg1_end if present
+            // Tip: size toward leg1_end if present (same decoupled behavior)
             var (tipLen, tipAim) = MeasureToward(tip, null, rootToTip * 0.45f);
             AddCapsuleSmart(tip, legRadius * 0.9f, tipLen, tipAim, 0.3f);
             var rb1 = AddRB(tip, leg1MassFinal);
 
             var hj = tip.GetComponent<HingeJoint>() ?? tip.gameObject.AddComponent<HingeJoint>();
-            // Guard against self-connection
             if (rb0 == rb1)
             {
                 Debug.LogError($"[NebuliskRagdollBuilder] Knee hinge would self-connect on {tip.GetHierarchyPath()} – skipping.");
